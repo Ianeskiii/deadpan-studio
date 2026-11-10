@@ -25,9 +25,10 @@ def run(cmd, cwd=None, **kw):
 def newest_mp3(i):
     files = [f for f in glob.glob(os.path.join(ROOT, 'shorts', i, '*')) if f.lower().endswith('.mp3')]
     if not files: sys.exit(f'No .mp3 in shorts/{i}/ yet.')
-    def committed(f):  # newest by git commit time, falling back to mtime
+    def committed(f):  # newest by git commit time; a file not committed yet (local mode upload) is newer than any committed one
         r = subprocess.run(['git', 'log', '-1', '--format=%ct', '--', f], cwd=ROOT, capture_output=True, text=True)
-        return (int(r.stdout.strip() or 0), os.path.getmtime(f))
+        ct = int(r.stdout.strip() or 0) if r.returncode == 0 else 0
+        return (1, os.path.getmtime(f)) if ct == 0 else (0, ct)
     return max(files, key=committed)
 
 def prep(i, *args):

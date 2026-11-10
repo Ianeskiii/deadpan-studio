@@ -11,6 +11,7 @@ Channels: a short's "channel" is "deadpan-doug" (the default when the field is m
 Sticky shorts run in two stages (channels/sticky/PLAYBOOK.md): narration, then video once the owner has
 committed an .mp3 into shorts/<id>/. A sticky short in "needs-audio" without an .mp3 is skipped.
 Set STUDIO_NO_PUSH=1 to work locally without committing or pushing (tests).
+Set STUDIO_LOCAL=1 (local mode, tools/local_studio.py does it) to commit on this PC only: no pull, no push.
 
 Revision requests arrive as shorts/<id>/revision-<ms>.json files. `queue` folds them into short.json
 (status -> revision) and deletes the files. `version` marks every open revision done in the new version.
@@ -23,6 +24,7 @@ STICKY_STAGES = ["Queued", "Writing narration", "Needs audio", "Timing", "Scenes
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 now = lambda: int(time.time() * 1000)
+LOCAL = bool(os.environ.get('STUDIO_LOCAL'))  # set by tools/local_studio.py: work on this PC only, never pull or push
 
 
 def load(i):
@@ -69,10 +71,14 @@ def push(msg):
     index()
     if os.environ.get('STUDIO_NO_PUSH'):
         print('(STUDIO_NO_PUSH: not committing)', msg); return
+    if not os.path.isdir('.git'):
+        return
     git('add', '-A', 'shorts', 'library')
     if git('diff', '--cached', '--quiet', check=False).returncode == 0:
         return
     git('-c', 'user.name=Deadpan Studio', '-c', 'user.email=noreply@anthropic.com', 'commit', '-q', '-m', msg)
+    if LOCAL:  # local mode: history stays on this PC, nothing is pushed
+        return
     for _ in range(3):  # another account may have pushed meanwhile
         if git('push', '-q', 'origin', 'HEAD:main', check=False).returncode == 0:
             return
@@ -87,7 +93,8 @@ def index():
 
 
 def queue():
-    git('pull', '-q', '--rebase', 'origin', 'main', check=False)
+    if not LOCAL:
+        git('pull', '-q', '--rebase', 'origin', 'main', check=False)
     changed = False
     for f in sorted(glob.glob('shorts/*/revision-*.json')):
         i = f.split('/')[1]

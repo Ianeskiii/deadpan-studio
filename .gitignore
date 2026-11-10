@@ -28,3 +28,8 @@ channels/sticky/**/*.png
 channels/sticky/**/poster.jpg
 channels/sticky/**/asr.json
 channels/sticky/**/result.json
+
+# local mode (tools/local_studio.py, local/start.sh)
+.venv/
+.local/
+*.part

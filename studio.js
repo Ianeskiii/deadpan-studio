@@ -10,6 +10,9 @@
   var CHANNELS = { "deadpan-doug": "Deadpan Doug", sticky: "Sticky" };
   var S = { shorts: [], chars: [], scenes: [], reqs: [], revs: {}, narr: {}, mp3: {}, filter: "all", chFilter: "all", channel: "deadpan-doug", picked: {}, ver: {}, live: true };
   var $ = function (id) { return document.getElementById(id); };
+  /* Local mode: the site is served by tools/local_studio.py on your own PC (not GitHub Pages).
+     Everything is read from and saved to the local folder, and Claude Code runs on the PC. */
+  var LOCAL = !/\.github\.io$/i.test(location.hostname) && /^https?:$/.test(location.protocol);
 
   function el(tag, attrs, kids) {
     var n = document.createElement(tag);
@@ -39,6 +42,7 @@
 
   /* ---------- load ---------- */
   function listPaths() {
+    if (LOCAL) return getJSON("api/files").then(function (ix) { S.live = true; return ix.paths; });
     return getJSON(API + "/git/trees/" + BRANCH + "?recursive=1").then(function (t) {
       S.live = true; return t.tree.map(function (x) { return x.path; });
     }, function () { // API limit or offline: fall back to the index Claude keeps up to date
@@ -47,7 +51,7 @@
   }
   function load() {
     return listPaths().then(function (paths) {
-      var base = S.live ? RAW : "";
+      var base = S.live && !LOCAL ? RAW : "";
       var shortFiles = paths.filter(function (p) { return /^shorts\/[^/]+\/short\.json$/.test(p); });
       var revFiles = paths.filter(function (p) { return /^shorts\/[^/]+\/revision-[^/]+\.json$/.test(p); });
       var reqFiles = paths.filter(function (p) { return /^library\/requests\/[^/]+\.json$/.test(p); });
@@ -66,7 +70,7 @@
       S.revs = {}; r[1].filter(Boolean).forEach(function (v) { var id = v.__path.split("/")[1]; (S.revs[id] = S.revs[id] || []).push(v); });
       S.reqs = r[2].filter(Boolean); S.chars = r[3]; S.scenes = r[4];
       S.narr = {}; r[5].filter(Boolean).forEach(function (x) { S.narr[x[0]] = x[1].trim(); });
-      $("conn").hidden = S.live; $("conn").textContent = "Showing the last published copy. Brand-new requests may take a few minutes to appear.";
+      $("conn").hidden = S.live || LOCAL; $("conn").textContent = "Showing the last published copy. Brand-new requests may take a few minutes to appear.";
       renderAll();
     }).catch(function () { $("conn").hidden = false; $("conn").textContent = "The studio data couldn't be loaded. Check your connection and reload."; });
   }
@@ -74,6 +78,7 @@
   /* ---------- commit helper: GitHub opens a pre-filled new file ---------- */
   function propose(path, obj, msgId, okText) {
     var body = JSON.stringify(obj, null, 2) + "\n";
+    if (LOCAL) return saveLocal(path, body, msgId);
     var u = "https://github.com/" + OWNER + "/" + REPO + "/new/" + BRANCH + "?filename=" + encodeURIComponent(path);
     var full = u + "&value=" + encodeURIComponent(body);
     var copy = navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(body).catch(function () {}) : Promise.resolve();
@@ -81,6 +86,50 @@
       if (full.length < 7000) { window.open(full, "_blank", "noopener"); say(msgId, okText, "ok"); }
       else { window.open(u, "_blank", "noopener"); say(msgId, "That brief is long, so GitHub opened an empty file. It's copied: paste it in, then click Commit changes.", "ok"); }
     });
+  }
+
+  function saveLocal(path, body, msgId) {
+    say(msgId, "Saving…");
+    return fetch("api/file", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: path, content: body }) })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); return j; }); })
+      .then(function () {
+        say(msgId, "Saved. Claude starts on it right away; progress shows on the card.", "ok");
+        if (msgId === "msg-new") { $("in-title").value = ""; $("in-desc").value = ""; if ($("in-notes")) $("in-notes").value = ""; }
+        load(); localStatus();
+      }, function (e) { say(msgId, "Couldn't save: " + e.message, "err"); });
+  }
+  function uploadLocal(s, mid) {
+    var inp = el("input", { type: "file", accept: ".mp3,audio/mpeg", style: "display:none" });
+    inp.addEventListener("change", function () {
+      var f = inp.files[0]; if (!f) return;
+      if (!/\.mp3$/i.test(f.name)) return say(mid, "Choose an .mp3 file.", "err");
+      say(mid, "Uploading " + f.name + "…");
+      fetch("api/upload?id=" + encodeURIComponent(s.id) + "&name=" + encodeURIComponent(f.name), { method: "POST", body: f })
+        .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); return j; }); })
+        .then(function () { say(mid, "Uploaded. Claude starts making the video now.", "ok"); load(); localStatus(); },
+              function (e) { say(mid, "Upload failed: " + e.message, "err"); });
+    });
+    document.body.appendChild(inp); inp.click();
+    setTimeout(function () { if (inp.parentNode) inp.parentNode.removeChild(inp); }, 600000);
+  }
+  /* local status bar: is Claude working, idle or missing? */
+  function localStatus() {
+    if (!LOCAL) return;
+    var bar = $("local-bar");
+    if (!bar) { bar = el("div", { id: "local-bar", class: "note", role: "status" }); var c = $("conn"); c.parentNode.insertBefore(bar, c); }
+    getJSON("api/status").then(function (st) {
+      bar.textContent = "";
+      var txt = !st.claude ? "Claude Code wasn't found on this PC. See LOCAL.md to install it inside WSL."
+        : st.error ? st.error
+        : st.running ? "Claude is working on the queue (started " + ago(st.startedAt) + ")."
+        : st.pauseUntil && st.pauseUntil > Date.now() && st.waiting ? "The last Claude run stopped early (exit " + st.lastExit + ", often a usage limit). It tries again by itself in about " + fmtMin((st.pauseUntil - Date.now()) / 60000) + "."
+        : st.waiting ? "Work is waiting. Claude starts on it shortly."
+        : "Local studio · Claude is idle" + (st.lastEnd ? " (last run finished " + ago(st.lastEnd) + ")" : "") + ".";
+      bar.appendChild(el("span", { text: txt + " " }));
+      if (!st.running && st.claude) bar.appendChild(el("button", { class: "btn", type: "button", text: "Run the queue now", onclick: function () {
+        fetch("api/run", { method: "POST" }).then(function () { setTimeout(localStatus, 1500); });
+      } }));
+    }, function () { bar.textContent = "The local studio isn't responding. Is local/start.sh still running in the Ubuntu window?"; });
   }
 
   /* ---------- render ---------- */
@@ -166,7 +215,8 @@
     var kids = [el("span", { class: "lab", text: "Narration · " + (t ? t.split(/\s+/).length + " words" : "loading…") }), el("pre", { text: t || "The narration will appear here." })];
     if (withButtons) kids.push(el("div", { class: "row" }, [
       el("button", { class: "btn sticky", type: "button", text: "Copy narration", disabled: t ? null : "", onclick: function () { copyText(t, mid); } }),
-      el("a", { class: "btn", href: "https://github.com/" + OWNER + "/" + REPO + "/upload/" + BRANCH + "/shorts/" + s.id, target: "_blank", rel: "noopener", text: "Upload narration audio" }),
+      LOCAL ? el("button", { class: "btn", type: "button", text: "Upload narration audio", onclick: function () { uploadLocal(s, mid); } })
+        : el("a", { class: "btn", href: "https://github.com/" + OWNER + "/" + REPO + "/upload/" + BRANCH + "/shorts/" + s.id, target: "_blank", rel: "noopener", text: "Upload narration audio" }),
       el("span", { class: "msg", id: mid, role: "status" })]));
     return el("div", { class: "narr" }, kids);
   }
@@ -308,6 +358,15 @@
     document.querySelectorAll("nav.tabs a").forEach(function (a) { a.setAttribute("aria-current", a.dataset.view === v ? "page" : "false"); });
   }
   window.addEventListener("hashchange", route); route();
+  if (LOCAL) {
+    var how = function (sel, i, html) { var li = document.querySelectorAll(sel + " li")[i]; if (li) li.innerHTML = html; };
+    how("#how-sticky", 0, "<b>Add the title here.</b> It's saved on this PC and Claude starts right away.");
+    how("#how-sticky", 3, "<b>Tap Upload narration audio</b> and pick the MP3. Not happy with the words? Use <b>Rewrite narration</b> first.");
+    how("#how-doug", 0, "<b>Add it here.</b> It's saved on this PC.");
+    how("#how-doug", 1, "<b>Production starts by itself.</b> Claude Code runs on this PC. The bar at the top shows whether it's working; <b>Run the queue now</b> starts it by hand.");
+    localStatus(); setInterval(function () { if (document.visibilityState === "visible") localStatus(); }, 15000);
+    setInterval(function () { if (document.visibilityState === "visible") load(); }, 30000);
+  }
   load();
   setInterval(function () { if (document.visibilityState === "visible" && S.shorts.some(function (s) { return s.status === "working" || s.status === "queued" || (chanOf(s) === "sticky" && stickyState(s) === "audio-in"); })) load(); }, 120000);
 })();

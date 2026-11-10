@@ -30,6 +30,12 @@ STAGES = `["Queued", "Script & timing", "Voices", "Set & cast", "Animation", "Te
 This usually runs by itself: `.github/workflows/run-queue.yml` starts Claude in GitHub Actions whenever a short, revision or library request is committed, every 3 hours to resume unfinished work, or by hand from the Actions tab. It uses the repo secrets `CLAUDE_TOKEN_1`, `CLAUDE_TOKEN_2` and `CLAUDE_TOKEN_3` (one per Claude account, made with `claude setup-token`). When one account hits its limit, the next one continues. One run lasts at most about 6 hours. A chat session saying "run the queue" does the same work by hand.
 
 
+### Local mode (the owner's PC, no GitHub)
+
+The owner can also run everything on their Windows PC inside WSL (`LOCAL.md`). `local/start.sh` sets up `.venv` (Python 3.13) and runs `setup.sh`, then `tools/local_studio.py` serves the website at http://localhost:8080, saves new shorts, revisions, library requests and MP3 uploads straight into this folder, and starts `claude -p` with `STUDIO_LOCAL=1` whenever there is work. In local mode:
+- `tools/studio.py` commits on the PC only: it never pulls or pushes. Don't use `git pull`, `git push` or `gh`; skip the "push" parts of the steps below.
+- Use the `.venv` Python (it is first on PATH). Everything else, including the sticky playbook and its sync checks, is the same.
+
 1. Run `python3 tools/studio.py queue`. It pulls, folds revision files into their short, and lists what's waiting, oldest first, plus library requests. It also lists anything stuck at `working` from an account that ran out of usage: resume those.
    For each **sticky** short, `queue` prints which stage it needs ("STAGE 1 narration" or "STAGE 2 video"). Do that stage exactly as `channels/sticky/PLAYBOOK.md` says instead of steps 2–5 below. Sticky shorts waiting in `needs-audio` with no `.mp3` are skipped, so don't touch them. Everything else in this list is for Deadpan Doug shorts.
 2. For each short:
