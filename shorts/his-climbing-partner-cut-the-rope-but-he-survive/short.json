@@ -3,12 +3,12 @@
   "title": "His Climbing Partner Cut the Rope… But He Survived — Joe Simpson.",
   "channel": "sticky",
   "description": "",
-  "status": "working",
-  "stage": "Final check",
-  "stageIndex": 8,
-  "progress": 89,
-  "etaMinutes": 5.0,
-  "note": "Final check",
+  "status": "ready",
+  "stage": "Ready",
+  "stageIndex": 9,
+  "progress": 100,
+  "etaMinutes": null,
+  "note": "",
   "versions": [
     {
       "v": 1,
@@ -16,17 +16,25 @@
       "poster": "v1.jpg",
       "seconds": 76.8,
       "notes": "v1, 38 shots, 76.8 s, made to the uploaded ElevenLabs MP3 (it matched the narration word for word). Hook: Simon on the ice cliff in the storm cuts the rope, then Joe falls into the dark. The story runs through Peru (June 1985), name cards, Siula Grande's west face with an altitude counter, the fall shown as an x-ray card (nothing graphic), the two ropes tied together and the 300 ft lowerings, the storm and the ice cliff, an hourglass for the hour, the snap, the crevasse and the ice ledge, Simon going down alone, 'ALIVE', going deeper and out into the sunlight, about 3 days and 5+ miles of crawling, camp at night, and 'the right call'. The ending blends back into the hook so it loops (loop diff 1.6). Real people are plain stick figures with name cards. New library assets: climbing helmets, Joe/Simon, peak, ropes, ice walls, crevasse, tent, x-ray bone, Peru map, moraine and a crawling pose."
+    },
+    {
+      "v": 2,
+      "video": "v2.mp4",
+      "poster": "v2.jpg",
+      "seconds": 76.8,
+      "notes": "v2: captions and shots re-timed to the voice. prep was re-run with the new alignment: 98% of words heard (v1 guessed the first 33 s), and SYNC OK. I also fixed the aligner, where whisper stretched short words ('So', 'And') across the pause before them. That lets line 9 ('So he took out his knife') and the last line start on the voice. Same 38 shots, style and sound design; every cue is tied to word times, so all of them moved with the new timeline. Final check: SYNC CHECK OK (voice offset +0.00 s), loop diff 1.6."
     }
   ],
   "revisions": [
     {
       "text": "Captions and shots in v1 don't follow the voice in the first ~33 s (word timing was guessed because whisper didn't hear that stretch). Re-run prep with the new alignment + sync check, re-time the shots to the new timeline.json (keep the same shots, style and sound design), re-render, and publish only after 'sticky.py check' prints SYNC CHECK OK.",
       "at": 1794300082866,
-      "done": false,
-      "kind": "video"
+      "done": true,
+      "kind": "video",
+      "doneIn": 2
     }
   ],
   "createdAt": 1794287783770,
-  "updatedAt": 1794323876760,
+  "updatedAt": 1794323878209,
   "narrationAt": 1794292410070
 }
