@@ -3,15 +3,23 @@
   "title": "His Climbing Partner Cut the Rope… But He Survived — Joe Simpson.",
   "channel": "sticky",
   "description": "",
-  "status": "working",
-  "stage": "Final check",
-  "stageIndex": 8,
-  "progress": 89,
-  "etaMinutes": 5.0,
-  "note": "Final check",
-  "versions": [],
+  "status": "ready",
+  "stage": "Ready",
+  "stageIndex": 9,
+  "progress": 100,
+  "etaMinutes": null,
+  "note": "",
+  "versions": [
+    {
+      "v": 1,
+      "video": "v1.mp4",
+      "poster": "v1.jpg",
+      "seconds": 76.8,
+      "notes": "v1, 38 shots, 76.8 s, made to the uploaded ElevenLabs MP3 (it matched the narration word for word). Hook: Simon on the ice cliff in the storm cuts the rope, then Joe falls into the dark. The story runs through Peru (June 1985), name cards, Siula Grande's west face with an altitude counter, the fall shown as an x-ray card (nothing graphic), the two ropes tied together and the 300 ft lowerings, the storm and the ice cliff, an hourglass for the hour, the snap, the crevasse and the ice ledge, Simon going down alone, 'ALIVE', going deeper and out into the sunlight, about 3 days and 5+ miles of crawling, camp at night, and 'the right call'. The ending blends back into the hook so it loops (loop diff 1.6). Real people are plain stick figures with name cards. New library assets: climbing helmets, Joe/Simon, peak, ropes, ice walls, crevasse, tent, x-ray bone, Peru map, moraine and a crawling pose."
+    }
+  ],
   "revisions": [],
   "createdAt": 1794287783770,
-  "updatedAt": 1794299133101,
+  "updatedAt": 1794299134456,
   "narrationAt": 1794292410070
 }
