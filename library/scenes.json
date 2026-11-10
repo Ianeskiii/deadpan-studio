@@ -1,0 +1,65 @@
+[
+  {
+    "description": "Cozy daytime café: counter with a pickup end, espresso machine, menu boards, pendant lamps.",
+    "name": "Coffee shop",
+    "order": 1,
+    "status": "ready",
+    "usedIn": "Barista",
+    "id": "coffee-shop",
+    "image": "library/img/coffee-shop.jpg"
+  },
+  {
+    "description": "Couch facing a big TV that can play any footage, coffee table, lit mostly by the screen.",
+    "name": "Living room at night",
+    "order": 2,
+    "status": "ready",
+    "usedIn": "Anime with subtitles",
+    "id": "living-room",
+    "image": "library/img/living-room.jpg"
+  },
+  {
+    "description": "Concrete lot with parked cars and a brick wall under cool street light.",
+    "name": "Parking lot at night",
+    "order": 3,
+    "status": "ready",
+    "usedIn": "Getting robbed",
+    "id": "parking-lot",
+    "image": "library/img/parking-lot.jpg"
+  },
+  {
+    "description": "Pink tile, toilet, bathtub, shelf with a plant and a shampoo bottle.",
+    "name": "Bathroom",
+    "order": 4,
+    "status": "ready",
+    "usedIn": "Forgot my phone, Five minutes away",
+    "id": "bathroom",
+    "image": "library/img/bathroom.jpg"
+  },
+  {
+    "description": "Bed with a blue checkered blanket, nightstand and a digital alarm clock.",
+    "name": "Bedroom",
+    "order": 5,
+    "status": "ready",
+    "usedIn": "Wake up before your alarm",
+    "id": "bedroom",
+    "image": "library/img/bedroom.jpg"
+  },
+  {
+    "description": "Dark kitchen counter with a glowing microwave and green cabinets.",
+    "name": "Kitchen at night",
+    "order": 6,
+    "status": "ready",
+    "usedIn": "The microwave",
+    "id": "kitchen",
+    "image": "library/img/kitchen.jpg"
+  },
+  {
+    "description": "Brick movie theater front with a lit marquee and double doors, day or night.",
+    "name": "Cinema exterior",
+    "order": 7,
+    "status": "ready",
+    "usedIn": "Five minutes away",
+    "id": "cinema",
+    "image": "library/img/cinema.jpg"
+  }
+]

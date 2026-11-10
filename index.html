@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Deadpan Studio</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+html, body { margin: 0 }
+/* Layout: a production desk. Sticky header with four views (New short / Shorts / Characters / Scenes);
+   shorts are slate-style cards with a 9:16 monitor on the left and the production strip on the right. */
+:root {
+  --bg: #eef0f3; --surface: #ffffff; --sunk: #e3e6eb; --ink: #1b2030; --muted: #5d6578; --line: #d3d8e0;
+  --doug: #e8b52e; --doug-ink: #3a2c05; --hat: #cf4f3a; --ok: #2f8a5b; --info: #3b6fd6; --on-accent: #ffffff;
+  --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12141b; --surface: #1c1f29; --sunk: #262a36; --ink: #eceae4; --muted: #9aa2b4; --line: #323746;
+  --doug: #e8b52e; --doug-ink: #2a2004; --hat: #e8705b; --ok: #56b987; --info: #7fa3f0; --on-accent: #12141b; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12141b; --surface: #1c1f29; --sunk: #262a36; --ink: #eceae4; --muted: #9aa2b4; --line: #323746;
+  --doug: #e8b52e; --doug-ink: #2a2004; --hat: #e8705b; --ok: #56b987; --info: #7fa3f0; --on-accent: #12141b; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface) }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.2 }
+button, input, select, textarea { font: inherit; color: inherit }
+:focus-visible { outline: 2px solid var(--info); outline-offset: 2px }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--surface); border-bottom: 1px solid var(--line) }
+header.top .wrap { display: flex; align-items: center; gap: 8px 20px; flex-wrap: wrap; padding-block: 10px }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 700; font-size: 18px }
+.mark { width: 22px; height: 30px; border-radius: 11px; background: var(--doug); position: relative; flex: none }
+.mark::before { content: ""; position: absolute; left: -4px; right: -4px; top: -2px; height: 9px; border-radius: 5px 5px 2px 2px; background: var(--hat) }
+.mark::after { content: ""; position: absolute; left: 5px; right: 5px; top: 13px; height: 3px; border-radius: 2px; background: var(--doug-ink); box-shadow: 0 6px 0 -1px var(--doug-ink) }
+nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto }
+nav.tabs a { text-decoration: none; color: var(--muted); padding: 7px 12px; border-radius: 8px; font-weight: 600; font-size: 14px }
+nav.tabs a[aria-current="page"] { background: var(--ink); color: var(--bg) }
+nav.tabs a .n { font-family: var(--mono); font-size: 12px; opacity: .75; margin-left: 4px }
+main { padding-block: 24px 64px }
+.view > .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 16px }
+.view h1 { font-size: 26px }
+.sub { color: var(--muted); margin: 4px 0 0; max-width: 65ch }
+.note { background: var(--sunk); border-radius: var(--r); padding: 10px 14px; color: var(--muted); font-size: 14px; margin-bottom: 16px }
+.note.warn { color: var(--ink); border-left: 4px solid var(--hat) }
+/* form */
+.cols { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 20px; align-items: start }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px }
+form .f { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; min-width: 0 }
+label, .lab { font-weight: 600; font-size: 14px }
+.opt { font-weight: 400; color: var(--muted); font-size: 13px }
+input[type=text], input[type=number], input[type=url], textarea, select { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; width: 100%; min-width: 0 }
+textarea { resize: vertical; min-height: 120px }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap }
+.row input[type=number] { width: 84px }
+.chips { display: flex; gap: 8px; flex-wrap: wrap }
+.chip { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 4px 12px 4px 5px; cursor: pointer; font-size: 14px }
+.chip .dot { width: 22px; height: 22px; border-radius: 50%; background: var(--sunk); background-size: cover; background-position: center top; flex: none }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink) }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 14px; font-weight: 600; cursor: pointer }
+.btn.primary { background: var(--doug); border-color: var(--doug); color: var(--doug-ink) }
+.btn.danger { color: var(--hat) }
+.btn:disabled { opacity: .5; cursor: not-allowed }
+.msg { font-size: 14px; color: var(--muted) } .msg.err { color: var(--hat) } .msg.ok { color: var(--ok) }
+ol.flow { margin: 10px 0 0; padding-left: 20px; color: var(--muted); font-size: 14px; display: grid; gap: 6px }
+ol.flow b { color: var(--ink) }
+/* shorts */
+.filters { display: flex; gap: 6px; flex-wrap: wrap }
+.filters button { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--muted) }
+.filters button[aria-pressed="true"] { background: var(--surface); color: var(--ink); border-color: var(--ink) }
+.shorts { display: grid; gap: 16px }
+.short { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); display: grid; grid-template-columns: 200px minmax(0, 1fr); overflow: hidden }
+.monitor { background: #0b0c10; aspect-ratio: 9 / 16; max-width: 100%; position: relative; display: grid; place-items: center }
+.monitor video, .monitor img { width: 100%; height: 100%; object-fit: cover; display: block }
+.monitor .slate { color: #c9ccd6; font-family: var(--mono); font-size: 12px; text-align: center; padding: 12px; line-height: 1.7 }
+.monitor .slate b { display: block; font-size: 28px; color: var(--doug) }
+.body { padding: 16px 18px; min-width: 0; display: flex; flex-direction: column; gap: 12px }
+.body h2 { font-size: 19px }
+.meta { display: flex; gap: 6px 14px; flex-wrap: wrap; color: var(--muted); font-size: 13px; align-items: center }
+.pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; letter-spacing: .02em; border: 1px solid currentColor }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor }
+.pill.queued { color: var(--muted) } .pill.working { color: var(--info) } .pill.ready { color: var(--ok) } .pill.revision { color: var(--hat) }
+.desc { color: var(--muted); font-size: 14px; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere }
+.desc.clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden }
+.strip { display: grid; gap: 6px }
+.bar { height: 8px; background: var(--sunk); border-radius: 4px; overflow: hidden }
+.bar i { display: block; height: 100%; background: var(--doug); border-radius: 4px; transition: width .4s }
+.stages { display: flex; gap: 4px; flex-wrap: wrap; font-size: 11px; font-family: var(--mono); color: var(--muted) }
+.stages span { padding: 1px 6px; border-radius: 4px; background: var(--sunk) }
+.stages span.done { color: var(--ok) } .stages span.now { background: var(--ink); color: var(--bg) }
+.eta { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums }
+.vers { display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
+.vers button { font-family: var(--mono); font-size: 12px; border: 1px solid var(--line); background: var(--bg); border-radius: 6px; padding: 2px 8px; cursor: pointer }
+.vers button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink) }
+.revs { display: grid; gap: 6px; font-size: 13px }
+.rev { border-left: 3px solid var(--line); padding-left: 10px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere }
+.rev.open { border-color: var(--hat); color: var(--ink) }
+details.revise summary { cursor: pointer; font-weight: 600; font-size: 14px }
+details.revise textarea { min-height: 90px; margin: 8px 0 }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: auto }
+/* library */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; display: flex; flex-direction: column }
+.card .pic { aspect-ratio: 4 / 3; background: var(--sunk) center / cover no-repeat; display: grid; place-items: center; color: var(--muted); font-family: var(--mono); font-size: 12px }
+.card.char .pic { aspect-ratio: 1; background-position: center top }
+.card .in { padding: 12px 14px; display: grid; gap: 4px }
+.card h3 { font-size: 16px }
+.card p { margin: 0; color: var(--muted); font-size: 13px }
+.tag { font-family: var(--mono); font-size: 11px; color: var(--muted) }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; border: 1px solid var(--line) }
+.empty { border: 1px dashed var(--line); border-radius: var(--r); padding: 28px; text-align: center; color: var(--muted) }
+.addrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto; gap: 8px; margin-top: 18px }
+@media (max-width: 760px) {
+  .cols { grid-template-columns: minmax(0, 1fr) }
+  .short { grid-template-columns: minmax(0, 1fr) }
+  .monitor { width: 100%; max-height: 420px; aspect-ratio: auto; height: 380px }
+  .monitor video, .monitor img { object-fit: contain }
+  .addrow { grid-template-columns: minmax(0, 1fr) }
+  nav.tabs { margin-left: 0 }
+}
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none } }
+.short .monitor video { background: #0b0c10 }
+a.btn { text-decoration: none; display: inline-flex; align-items: center }
+.how { font-size: 14px; color: var(--muted) } .how code { font-family: var(--mono); font-size: 12px; background: var(--sunk); padding: 1px 5px; border-radius: 4px }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="brand"><span class="mark" aria-hidden="true"></span>Deadpan Studio</div>
+  <nav class="tabs" aria-label="Views">
+    <a href="#new" data-view="new">New short</a>
+    <a href="#shorts" data-view="shorts">Shorts<span class="n" id="n-shorts"></span></a>
+    <a href="#characters" data-view="characters">Characters<span class="n" id="n-chars"></span></a>
+    <a href="#scenes" data-view="scenes">Scenes<span class="n" id="n-scenes"></span></a>
+  </nav>
+</div></header>
+
+<main class="wrap">
+  <div id="conn" class="note warn" hidden></div>
+
+  <section class="view" id="view-new" hidden>
+    <div class="head"><div><h1>New short</h1><p class="sub">Describe the bit. Claude writes the timing, builds any missing character or scene, animates, voices, renders and checks it.</p></div></div>
+    <div class="cols">
+      <form class="panel" id="f-new" novalidate>
+        <div class="f"><label for="in-title">Title</label>
+          <input type="text" id="in-title" maxlength="120" placeholder="When the barista still gets your name wrong" required></div>
+        <div class="f"><label for="in-desc">Description / act</label>
+          <textarea id="in-desc" maxlength="6000" placeholder="What happens, beat by beat. Dialogue lines if any. Where the joke lands." required></textarea></div>
+        <div class="f"><span class="lab">Duration <span class="opt">seconds, a range is fine</span></span>
+          <div class="row"><input type="number" id="in-dmin" min="5" max="60" value="15" aria-label="Minimum seconds"><span>to</span><input type="number" id="in-dmax" min="5" max="60" value="20" aria-label="Maximum seconds"><span class="opt">s</span></div></div>
+        <div class="f"><span class="lab">Characters <span class="opt">optional. None picked: Doug leads, and anyone the story needs is created</span></span>
+          <div class="chips" id="pick-chars"><span class="msg">Loading the character library…</span></div>
+          <input type="text" id="in-newchars" maxlength="200" placeholder="New characters to create, e.g. a grumpy bus driver"></div>
+        <div class="f"><label for="in-scene">Scene <span class="opt">optional</span></label>
+          <select id="in-scene"><option value="">Let Claude pick or build one</option></select>
+          <input type="text" id="in-newscene" maxlength="200" placeholder="Or describe a new place, e.g. laundromat at night"></div>
+        <div class="f"><label for="in-ref">Reference video link <span class="opt">optional, e.g. a YouTube or Drive link</span></label>
+          <input type="url" id="in-ref" maxlength="500" placeholder="https://…"></div>
+        <div class="row"><button class="btn primary" type="submit">Add to queue</button><span class="msg" id="msg-new" role="status"></span></div>
+      </form>
+      <aside class="panel">
+        <h3>How a short gets made</h3>
+        <ol class="flow">
+          <li><b>Add it here.</b> GitHub opens with your request filled in. Click <b>Commit changes</b> to save it.</li>
+          <li><b>Tell Claude “run the queue”</b> in any of your Claude accounts, in a session with the <code>Ianeskiii/deadpan-studio</code> repo attached.</li>
+          <li><b>Watch it move.</b> Stage, progress and time left update on the card while Claude works. A 15-second short takes roughly 2 to 3 hours, mostly rendering.</li>
+          <li><b>Review and revise.</b> Play it, download it, or write what to change. Each revision becomes a new version.</li>
+        </ol>
+      </aside>
+    </div>
+  </section>
+
+  <section class="view" id="view-shorts" hidden>
+    <div class="head"><div><h1>Shorts</h1><p class="sub" id="shorts-sum">Loading…</p></div>
+      <div class="filters" id="filters" role="group" aria-label="Filter shorts">
+        <button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="active" aria-pressed="false">In production</button><button type="button" data-f="ready" aria-pressed="false">Ready</button>
+      </div></div>
+    <div class="shorts" id="list-shorts"><div class="empty">Loading shorts…</div></div>
+  </section>
+
+  <section class="view" id="view-characters" hidden>
+    <div class="head"><div><h1>Characters</h1><p class="sub">The cast Claude can reuse. A requested character is added once it has been built.</p></div></div>
+    <div class="grid" id="list-chars"><div class="empty">Loading the cast…</div></div>
+    <form class="addrow" id="f-char" novalidate>
+      <input type="text" id="c-name" maxlength="60" placeholder="Name" aria-label="Character name" required>
+      <input type="text" id="c-desc" maxlength="300" placeholder="Look and personality, e.g. tall teal landlord, always tired" aria-label="Character description" required>
+      <button class="btn" type="submit">Request character</button>
+    </form><p class="msg" id="msg-char" role="status"></p>
+  </section>
+
+  <section class="view" id="view-scenes" hidden>
+    <div class="head"><div><h1>Scenes</h1><p class="sub">Sets that already exist and can be reused in any short.</p></div></div>
+    <div class="grid" id="list-scenes"><div class="empty">Loading the sets…</div></div>
+    <form class="addrow" id="f-scene" novalidate>
+      <input type="text" id="s-name" maxlength="60" placeholder="Name" aria-label="Scene name" required>
+      <input type="text" id="s-desc" maxlength="300" placeholder="What it looks like, e.g. cramped elevator, flickering light" aria-label="Scene description" required>
+      <button class="btn" type="submit">Request scene</button>
+    </form><p class="msg" id="msg-scene" role="status"></p>
+  </section>
+</main>
+<script src="studio.js"></script>
+</body>
+</html>

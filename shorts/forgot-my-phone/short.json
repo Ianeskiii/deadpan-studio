@@ -1,0 +1,32 @@
+{
+  "id": "forgot-my-phone",
+  "title": "When you go to the bathroom and forget your phone",
+  "description": "Bored on the toilet, Doug stares at the ceiling, rests his chin on his hand, then reads the back of the shampoo bottle. \"Lather, rinse, repeat... How many times?\"",
+  "durationMin": 15,
+  "durationMax": 20,
+  "characters": [
+    "doug"
+  ],
+  "newCharacters": "",
+  "scene": "bathroom",
+  "newScene": "",
+  "status": "ready",
+  "stage": "Ready",
+  "stageIndex": 9,
+  "progress": 100,
+  "etaMinutes": null,
+  "note": "",
+  "revisions": [],
+  "createdAt": 1794007200000,
+  "updatedAt": 1794007200000,
+  "episode": "ep9",
+  "versions": [
+    {
+      "v": 2,
+      "video": "v2.mp4",
+      "poster": "v2.jpg",
+      "seconds": 19,
+      "notes": "Added the ceiling stare and chin-on-hand boredom beat"
+    }
+  ]
+}

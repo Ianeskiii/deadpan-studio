@@ -2,45 +2,37 @@
 
 This repo is the production pipeline for **Tube Town / Deadpan Doug**, an animated YouTube Shorts series (English, US audience, 9:16, deadpan comedy in the spirit of Nobody Sausage). The owner uses several of their own Claude accounts. Any of them may open this repo and run production. Treat every account as the same owner.
 
-## The studio website (shared queue and history)
+## The studio (queue and history live in this repo)
 
-- URL: https://claude.ai/artifact/LjaCXL7X6qtSUCa2RfoV7L
-- Source: `studio/deadpan-studio.html`. Capabilities: `{"db": {}, "assets": {}, "downloads": true, "user": {}}`.
-- The account running production must be an **Editor** on the studio (invited by email). Read and write its database with the ArtifactData tool, using the URL above. Upload videos and posters as assets with the Artifact tool (`asset: true`) and store the returned asset id.
-- Before any publish to the studio page, read it first (`action: "read"`). Never publish without that read, and never drop the db, assets, downloads or user capabilities.
+Everything is plain files in this repo, so any of the owner's Claude accounts can run production with only the repo attached. Don't use the old claude.ai artifact studio (`studio/deadpan-studio.html`): other accounts can't read its data.
 
-### Database
-
-`shorts/<id>`:
-- `title`, `description` (the act/brief), `durationMin`, `durationMax` (seconds)
-- `characters` (ids from the library; empty means Doug), `newCharacters` (free text: build these), `scene` (scene id), `newScene` (free text)
-- `refAsset` (asset id of the reference video, or empty), `refNote`
-- `status`: `queued` | `working` | `revision` | `ready` | `failed`
-- `stage`, `stageIndex` (index into STAGES below), `progress` (0–100), `etaMinutes` (minutes from `updatedAt`), `note` (short status line)
-- `versions`: list of `{v, video, poster, seconds, notes}`; `video` and `poster` are asset ids
-- `revisions`: list of `{text, at, done, doneIn}`
-- `createdAt`, `updatedAt` (ms epoch)
+- **Website:** GitHub Pages serves `index.html` + `studio.js` from `main` at https://ianeskiii.github.io/deadpan-studio/. It reads the files below. New requests from the site arrive as new files committed by the owner on GitHub.
+- **Shorts:** `shorts/<id>/short.json`, with the finished versions next to it as `v<N>.mp4` and `v<N>.jpg`. Fields:
+  - `id`, `title`, `description` (the brief), `durationMin`, `durationMax`
+  - `characters` (library ids; empty means Doug), `newCharacters`, `scene` (library id), `newScene`, `reference` (optional link)
+  - `status` (`queued` | `working` | `revision` | `ready` | `failed`), `stage`, `stageIndex`, `progress`, `etaMinutes`, `note`, `episode` (the `epNN` folder)
+  - `versions` (`{v, video, poster, seconds, notes}`), `revisions` (`{text, at, done, doneIn}`), `createdAt`, `updatedAt`
+- **Revision requests** arrive as `shorts/<id>/revision-<ms>.json`.
+- **Libraries:** `library/characters.json` and `library/scenes.json`, with images in `library/img/`. Requests for new ones arrive as `library/requests/<kind>-<slug>.json`.
+- **Helper:** `tools/studio.py` does the bookkeeping. Every write command commits and pushes, so the website updates as you work.
 
 STAGES = `["Queued", "Script & timing", "Voices", "Set & cast", "Animation", "Test frames", "Rendering", "Sound & edit", "Final check", "Ready"]`
 
-`characters/<id>` and `scenes/<id>`:
-- `name`, `description`, `status` (`requested` | `ready`), `image` (asset id), `order`
-- Characters only: `role`, `voice` (Kokoro voice id), `color` (#hex)
-
 ## "Run the queue"
 
-1. Read `shorts` where status is `queued` or `revision`, oldest first. Also read `characters` and `scenes` where status is `requested`.
+1. Run `python3 tools/studio.py queue`. It pulls, folds revision files into their short, and lists what's waiting, oldest first, plus library requests. It also lists anything stuck at `working` from an account that ran out of usage: resume those.
 2. For each short:
-   - Set `status: "working"` and update `stage`, `stageIndex`, `progress`, `etaMinutes` and `updatedAt` at every stage.
-   - Build it as a new `epNN/` folder modelled on `ep12/` (dialogue) or `ep13/` (no dialogue).
-3. When the video passes its checks:
-   - Upload the mp4 and a poster frame as assets.
-   - Append to `versions`. Set `status: "ready"`, `stage: "Ready"`, `stageIndex: 9`, `progress: 100`.
-   - For a revision, mark the open revisions `done: true, doneIn: <v>`.
-4. Add new characters and scenes to the library: set `status: "ready"`, upload a portrait or still as `image`, and pick a voice for characters.
-5. Commit the new `epNN/` code and update `EPISODES.md`, then push. The repo is the shared history between accounts.
+   - Run `python3 tools/studio.py stage <id> <stageIndex> [etaMinutes] ["note"]` at every stage (1 = Script & timing … 8 = Final check).
+   - Build it as a new `epNN/` folder, the next free number, modelled on `ep12/` (dialogue) or `ep13/` (no dialogue). Set `"episode": "epNN"` in its short.json.
+   - For a revision, read the open revisions, edit that short's existing `epNN/` scripts and re-render.
+3. When the video passes its checks, run `python3 tools/studio.py version <id> <final.mp4> <poster.jpg> <seconds> "<what changed>"`. This adds `v<N>`, marks open revisions done and sets the short to ready.
+4. For library requests, and new characters or scenes a short needed:
+   - Add an entry to `library/characters.json` or `library/scenes.json`: `id`, `name`, `description`, `status: "ready"`, `image: "library/img/<id>.jpg"` (a 600 px crop from a render), `order`; for characters also `role`, `voice`, `color`.
+   - Delete the request file.
+5. Commit and push the `epNN/` code plus a new row in `EPISODES.md`.
+6. If a short can't be made, run `python3 tools/studio.py fail <id> "<reason>"`.
 
-If a short can't be made, set `status: "failed"` and put the reason in `note`.
+Commit and push often. If this account runs out of usage mid-render, the next account continues from the repo: its scripts, and `stageIndex` in short.json, show where things stopped. Rendered frames are not committed, so they are re-rendered.
 
 ## Setup in a fresh workspace
 

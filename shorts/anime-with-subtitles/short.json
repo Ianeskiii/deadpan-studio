@@ -1,0 +1,34 @@
+{
+  "id": "anime-with-subtitles",
+  "title": "When you watch anime with subtitles",
+  "description": "Doug watches an original anime on the couch. His eyes flick from the action to the subtitles and back, faster and faster as the characters argue, until they wipe up and down like windshield wipers. The dialogue stops. So do his eyes. Cut to black.",
+  "durationMin": 12,
+  "durationMax": 16,
+  "characters": [
+    "doug",
+    "kaito",
+    "shiro"
+  ],
+  "newCharacters": "",
+  "scene": "living-room",
+  "newScene": "",
+  "status": "ready",
+  "stage": "Ready",
+  "stageIndex": 9,
+  "progress": 100,
+  "etaMinutes": null,
+  "note": "",
+  "revisions": [],
+  "createdAt": 1794021600000,
+  "updatedAt": 1794021600000,
+  "episode": "ep13",
+  "versions": [
+    {
+      "v": 1,
+      "video": "v1.mp4",
+      "poster": "v1.jpg",
+      "seconds": 16,
+      "notes": "First cut"
+    }
+  ]
+}

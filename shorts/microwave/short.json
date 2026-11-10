@@ -1,0 +1,33 @@
+{
+  "id": "microwave",
+  "title": "When the microwave says 2 minutes",
+  "description": "Doug stares down the microwave and stops it at 0:01. Tina asks why he doesn't just let it beep. \"Because it doesn't get to win.\"",
+  "durationMin": 15,
+  "durationMax": 20,
+  "characters": [
+    "doug",
+    "tina"
+  ],
+  "newCharacters": "",
+  "scene": "kitchen",
+  "newScene": "",
+  "status": "ready",
+  "stage": "Ready",
+  "stageIndex": 9,
+  "progress": 100,
+  "etaMinutes": null,
+  "note": "",
+  "revisions": [],
+  "createdAt": 1794000000000,
+  "updatedAt": 1794000000000,
+  "episode": "ep1",
+  "versions": [
+    {
+      "v": 2,
+      "video": "v2.mp4",
+      "poster": "v2.jpg",
+      "seconds": 18,
+      "notes": "Smoother walk, added the spoken punchline"
+    }
+  ]
+}

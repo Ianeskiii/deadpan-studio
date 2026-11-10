@@ -1,0 +1,24 @@
+{
+  "id": "front-camera",
+  "title": "When You Accidentally Open the Front Camera",
+  "description": "Duration: 12–16 seconds\nFormat: 9:16 YouTube Shorts\nGenre: Relatable 3D Animated Comedy\nStyle: Awkward, deadpan, mostly silent visual humor\n\nStory Description\n\nDoug is relaxing on his couch in his living room, casually scrolling through his phone. He looks comfortable, slightly bored, and completely unaware of what's about to happen.\n\nScene 1 — Casual Scrolling (0–3s)\n\nDoug is sitting comfortably on the couch, holding his smartphone.\n\nHe casually taps around his phone with his usual half-lidded, relaxed expression.\n\nSuddenly, he accidentally opens the camera app in selfie mode.\n\nThe screen instantly displays his face from an extremely unflattering low angle.\n\nScene 2 — The Horrifying Discovery (3–6s)\n\nShow a close-up of the phone screen.\n\nDoug's face appears ridiculously distorted by the camera perspective: an oversized forehead, exaggerated nostrils, awkward double chin, and terrible lighting.\n\nThe image should clearly be Doug himself, not a different character.\n\nCut back to Doug staring at his phone.\n\nHis eyes slowly widen in disbelief.\n\nHe blinks once.\n\nThen looks at the screen again.\n\nScene 3 — Checking Reality (6–10s)\n\nDoug slowly raises the phone to a more flattering angle.\n\nHis face on the screen looks normal again.\n\nHe lowers the phone.\n\nThe horrifying low-angle face returns.\n\nHe raises it again.\n\nNormal.\n\nLowers it again.\n\nHorrifying.\n\nDoug pauses, staring at the screen with silent disappointment.\n\nScene 4 — Final Punchline (10–15s)\n\nDoug slowly turns off his phone.\n\nHe places it face down on the couch beside him.\n\nHe sits perfectly still for a moment, processing what he just witnessed.\n\nThen he quietly picks up a nearby blanket and pulls it over his head.\n\nHold for a brief awkward silence.\n\nCut to black.\n\nCharacter and Animation Requirements\n\nPreserve Doug's exact existing yellow 3D character design, orange hat, eyes, mouth, and body proportions.\n\nThe front-camera image must show the same Doug model, distorted only through camera perspective.\n\nAvoid generating a different face or character on the phone screen.\n\nUse natural eye tracking, subtle blinking, and understated reactions.\n\nDoug should remain mostly deadpan rather than screaming or overreacting.\n\nKeep body movements smooth and physically believable.\n\nEnsure the phone remains properly attached to his hand without clipping or floating.\n\nCamera Direction\n\nUse clear, simple shots:\n\nMedium shot of Doug scrolling on the couch.\n\nClose-up of the phone showing the unflattering selfie.\n\nClose-up of Doug's reaction.\n\nAlternating phone angles showing the visual difference.\n\nWide shot of Doug hiding under the blanket.\n\nKeep the editing tight and avoid excessive cuts.\n\nAudio Direction\n\nNo dialogue from Doug.\n\nSubtle phone tapping sounds.\n\nA small camera activation sound.\n\nBrief awkward silence during Doug's reaction.\n\nSoft blanket movement at the ending.\n\nNo narration or unnecessary sound effects.\n\nComedy Direction\n\nThe humor should come from the contrast between how Doug normally looks and how terrible the accidental front-camera angle makes him appear.\n\nThe camera-angle comparison must be visually obvious.\n\nAvoid excessive facial expressions or forced jokes.\n\nThe final blanket reaction should feel like Doug silently deciding he's had enough of seeing himself for the day.\n\nFinal Validation\n\nBefore finalizing, verify that:\n\nDoug's original character design remains consistent.\n\nThe phone clearly switches to the front camera.\n\nThe selfie looks like Doug, not another character.\n\nThe flattering and unflattering angles are visibly different.\n\nThe phone and hands maintain proper physical contact.\n\nThe final blanket action is clear and natural.\n\nThe punchline works without dialogue.\n\nThe final video is approximately 12–16 seconds.\n\nCore joke: Doug accidentally sees himself through the front camera at the worst possible angle, questions his entire appearance, and silently hides from the world.",
+  "durationMin": 12,
+  "durationMax": 16,
+  "characters": [
+    "doug"
+  ],
+  "newCharacters": "",
+  "scene": "",
+  "newScene": "",
+  "status": "queued",
+  "stage": "Queued",
+  "stageIndex": 0,
+  "progress": 0,
+  "etaMinutes": null,
+  "note": "",
+  "revisions": [],
+  "createdAt": 1794277536599,
+  "updatedAt": 1794277536599,
+  "episode": "",
+  "versions": []
+}

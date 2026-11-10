@@ -1,0 +1,33 @@
+{
+  "id": "five-minutes-away",
+  "title": "That one friend who's \"five minutes away\"",
+  "description": "Doug waits outside the cinema. Tina texts \"omw!! 5 min\" from her bubble bath. Three hours later he is still there and the movie has started.",
+  "durationMin": 12,
+  "durationMax": 16,
+  "characters": [
+    "doug",
+    "tina"
+  ],
+  "newCharacters": "",
+  "scene": "cinema",
+  "newScene": "",
+  "status": "ready",
+  "stage": "Ready",
+  "stageIndex": 9,
+  "progress": 100,
+  "etaMinutes": null,
+  "note": "",
+  "revisions": [],
+  "createdAt": 1794003600000,
+  "updatedAt": 1794003600000,
+  "episode": "ep6",
+  "versions": [
+    {
+      "v": 1,
+      "video": "v1.mp4",
+      "poster": "v1.jpg",
+      "seconds": 15,
+      "notes": "First cut"
+    }
+  ]
+}

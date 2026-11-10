@@ -1,0 +1,32 @@
+{
+  "id": "wake-up-before-alarm",
+  "title": "When you wake up before your alarm",
+  "description": "Doug wakes, checks the clock: 4:20. He goes back to sleep. One second on his peaceful face, then the 7:00 alarm goes off and he screams.",
+  "durationMin": 10,
+  "durationMax": 14,
+  "characters": [
+    "doug"
+  ],
+  "newCharacters": "",
+  "scene": "bedroom",
+  "newScene": "",
+  "status": "ready",
+  "stage": "Ready",
+  "stageIndex": 9,
+  "progress": 100,
+  "etaMinutes": null,
+  "note": "",
+  "revisions": [],
+  "createdAt": 1794010800000,
+  "updatedAt": 1794010800000,
+  "episode": "ep10",
+  "versions": [
+    {
+      "v": 2,
+      "video": "v2.mp4",
+      "poster": "v2.jpg",
+      "seconds": 11,
+      "notes": "4:20 clock check, face hold, shout; removed the \"mmm\""
+    }
+  ]
+}

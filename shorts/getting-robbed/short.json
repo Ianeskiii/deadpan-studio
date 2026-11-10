@@ -1,0 +1,33 @@
+{
+  "id": "getting-robbed",
+  "title": "Getting robbed but your favorite music is still playing",
+  "description": "Ricky tries to take Doug's bag in a parking lot. Doug, headphones on, keeps dancing through the whole tug of war. Ricky gives up: \"Ugh, you know what? Forget it.\" Doug: \"...You good?\"",
+  "durationMin": 15,
+  "durationMax": 17,
+  "characters": [
+    "doug",
+    "ricky"
+  ],
+  "newCharacters": "",
+  "scene": "parking-lot",
+  "newScene": "",
+  "status": "ready",
+  "stage": "Ready",
+  "stageIndex": 9,
+  "progress": 100,
+  "etaMinutes": null,
+  "note": "",
+  "revisions": [],
+  "createdAt": 1794014400000,
+  "updatedAt": 1794014400000,
+  "episode": "ep11",
+  "versions": [
+    {
+      "v": 6,
+      "video": "v6.mp4",
+      "poster": "v6.jpg",
+      "seconds": 16,
+      "notes": "Fixed mouths, eye tracking, voice acting, wide shots for the struggle"
+    }
+  ]
+}

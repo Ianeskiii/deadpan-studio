@@ -1,0 +1,33 @@
+{
+  "id": "barista-name",
+  "title": "When the barista still gets your name wrong",
+  "description": "Doug orders, gives his name, spells it: D-O-U-G. \"Perfect. Got it!\" After the coffee is made: \"Coffee for... Dog!\" The cup says DOG. Doug looks at the cup, at her innocent smile, back at the cup, takes it and leaves without a word.",
+  "durationMin": 24,
+  "durationMax": 28,
+  "characters": [
+    "doug",
+    "barista"
+  ],
+  "newCharacters": "",
+  "scene": "coffee-shop",
+  "newScene": "",
+  "status": "ready",
+  "stage": "Ready",
+  "stageIndex": 9,
+  "progress": 100,
+  "etaMinutes": null,
+  "note": "",
+  "revisions": [],
+  "createdAt": 1794018000000,
+  "updatedAt": 1794018000000,
+  "episode": "ep12",
+  "versions": [
+    {
+      "v": 5,
+      "video": "v5.mp4",
+      "poster": "v5.jpg",
+      "seconds": 25,
+      "notes": "DOG close-up, silent ending, visible cup pickup and exit"
+    }
+  ]
+}

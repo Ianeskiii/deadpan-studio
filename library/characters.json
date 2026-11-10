@@ -1,0 +1,69 @@
+[
+  {
+    "color": "#e8b52e",
+    "description": "Yellow tube guy in an orange bucket hat. Half-lidded, calm, unimpressed by everything.",
+    "name": "Deadpan Doug",
+    "order": 1,
+    "role": "Lead",
+    "status": "ready",
+    "voice": "am_fenrir",
+    "id": "doug",
+    "image": "library/img/doug.jpg"
+  },
+  {
+    "color": "#2fa37c",
+    "description": "Teal, big purple eyes, gold earring. Doug's friend who is always five minutes away.",
+    "name": "Tina",
+    "order": 2,
+    "role": "Supporting",
+    "status": "ready",
+    "id": "tina",
+    "image": "library/img/tina.jpg"
+  },
+  {
+    "color": "#5c8a3a",
+    "description": "Green would-be robber in a beanie and teal track jacket. Confident until it stops working.",
+    "name": "Ricky",
+    "order": 3,
+    "role": "Supporting",
+    "status": "ready",
+    "voice": "am_michael",
+    "id": "ricky",
+    "image": "library/img/ricky.jpg"
+  },
+  {
+    "color": "#b28ce6",
+    "description": "Lavender, hair bun, green apron. Friendly, casual and confidently clueless.",
+    "name": "The Barista",
+    "order": 4,
+    "role": "Supporting",
+    "status": "ready",
+    "voice": "af_heart",
+    "id": "barista",
+    "image": "library/img/barista.jpg"
+  },
+  {
+    "color": "#222a5c",
+    "description": "Spiky navy hair, red headband and scarf. The hero of the anime Doug watches. Speaks Japanese.",
+    "name": "Kaito",
+    "order": 5,
+    "pickable": false,
+    "role": "2D, on-screen anime",
+    "status": "ready",
+    "voice": "jm_kumo",
+    "id": "kaito",
+    "image": "library/img/kaito.jpg"
+  },
+  {
+    "color": "#e2e4f0",
+    "description": "Long silver hair, dark coat. The rival in the anime Doug watches. Speaks Japanese.",
+    "name": "Shiro",
+    "order": 6,
+    "pickable": false,
+    "role": "2D, on-screen anime",
+    "status": "ready",
+    "voice": "jf_alpha",
+    "id": "shiro",
+    "image": "library/img/shiro.jpg"
+  }
+]
