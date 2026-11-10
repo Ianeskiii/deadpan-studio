@@ -10,15 +10,21 @@
   "newCharacters": "",
   "scene": "",
   "newScene": "",
-  "status": "ready",
-  "stage": "Ready",
-  "stageIndex": 9,
-  "progress": 100,
+  "status": "revision",
+  "stage": "Queued",
+  "stageIndex": 0,
+  "progress": 0,
   "etaMinutes": null,
   "note": "",
-  "revisions": [],
+  "revisions": [
+    {
+      "text": "Revise the existing V1 animation of **\"When You Accidentally Open the Front Camera\"** for Deadpan Doug. Make targeted improvements only. Preserve the original character models, 3D art style, living room environment, and blanket ending.\n\n**1. FIX LEGS AND FEET CLIPPING THROUGH THE COUCH — CRITICAL**\n\nDoug's legs and feet are visibly intersecting and passing through the couch geometry.\n\n- Correct Doug's sitting pose, hip height, knee positions, and foot placement.\n- His body should rest naturally on the couch cushion, with his legs positioned correctly in front of the seat.\n- Ensure his feet do not penetrate the couch, cushions, or floor.\n- Check the entire animation, not just the opening frame.\n- Maintain proper contact between Doug's body and the couch while he moves, adjusts his phone, and reacts.\n- Fix the actual character pose, rig, or geometry intersections. Do not hide clipping using camera angles.\n- Preserve Doug's existing body proportions and the couch dimensions.\n\n**2. FIX TITLE FONT AND TEXT READABILITY — HIGH PRIORITY**\n\nThe current title text is difficult to read and visually inconsistent with previous Deadpan Doug videos.\n\n- Inspect the original text-rendering settings from previously approved episodes, especially the Barista and Bathroom videos.\n- Reuse the exact established font family, weight, outline, size, and text placement wherever available.\n- Do not guess the previous font or introduce a completely different typography style.\n- If the original font is unavailable, use a clean, bold, highly readable sans-serif font such as Montserrat ExtraBold.\n- Use high-contrast white lettering with a subtle black outline or shadow.\n- Ensure text remains readable on mobile devices.\n- Keep all text within YouTube Shorts' safe viewing area.\n- Avoid thin lettering, excessive text animation, or decorative fonts.\n\n**3. MAKE THE ACCIDENTAL FRONT CAMERA ACTIVATION CLEARER**\n\nThe current opening does not clearly establish that Doug accidentally activates the front-facing camera.\n\n- Begin with Doug casually scrolling on his phone while sitting on the couch.\n- Show his finger accidentally tapping the camera icon or switching to selfie mode.\n- The phone screen should visibly change from normal content to the front-camera preview.\n- Doug should initially be unaware of the accidental activation.\n- After noticing his reflection, he should pause and slowly react.\n- Keep the action natural and concise without adding unnecessary shots.\n\n**4. IMPROVE THE GOOD-ANGLE VS. BAD-ANGLE COMPARISON**\n\nThe joke depends on Doug accidentally seeing himself from an extremely unflattering angle.\n\n- Clearly establish the first unflattering low-angle selfie.\n- Keep the phone screen showing Doug's exact existing character, not a redesigned or different character.\n- Doug raises the phone to eye level, revealing a normal-looking version of himself.\n- He lowers the phone again, returning to the exaggerated, unflattering angle.\n- Repeat the comparison briefly if it improves comedic timing.\n- Make the visual differences obvious through camera perspective, not inconsistent character models.\n- Maintain realistic phone orientation and synchronized movement between Doug's hand and the selfie preview.\n- Avoid changing Doug's actual facial geometry or permanent appearance.\n\n**5. IMPROVE FACIAL EXPRESSIONS AND EYE TRACKING**\n\n- Preserve Doug's signature half-lidded, deadpan expression.\n- Add subtle eye movements as he examines his phone.\n- His reaction should gradually progress from casual boredom to confusion, disbelief, and silent disappointment.\n- Keep his mouth consistently visible.\n- Avoid exaggerated expressions, robotic blinking, or unnatural eye movements.\n- Ensure facial proportions remain consistent throughout every shot.\n\n**6. IMPROVE PACING AND COMEDIC TIMING**\n\n- Reduce repetitive selfie close-ups that do not contribute to the joke.\n- Make the progression clear: casual scrolling → accidental selfie → horrifying low-angle view → angle comparison → silent",
+      "at": 1794294786928,
+      "done": false
+    }
+  ],
   "createdAt": 1794277536599,
-  "updatedAt": 1794292368260,
+  "updatedAt": 1794298012852,
   "episode": "ep14",
   "versions": [
     {
