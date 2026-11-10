@@ -12,7 +12,7 @@ if grep -qi microsoft /proc/version 2>/dev/null && [[ "$ROOT" == /mnt/* ]]; then
 fi
 
 # 1. System packages: ffmpeg, the libraries Blender and the sticky renderer need, and tools for setup.
-PKGS="ffmpeg libxi6 libxkbcommon0 libsm6 libgl1 libegl1 libgles2 curl git ca-certificates"
+PKGS="build-essential cmake ffmpeg libxi6 libxkbcommon0 libsm6 libgl1 libegl1 libgles2 curl git ca-certificates"
 MISSING=$(for p in $PKGS; do dpkg -s "$p" >/dev/null 2>&1 || echo "$p"; done)
 if [ -n "$MISSING" ]; then
   say "Installing system packages: $(echo $MISSING)"
