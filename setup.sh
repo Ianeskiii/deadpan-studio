@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 PIP="pip install -q --break-system-packages"
-$PIP bpy==5.2.3 kokoro-onnx==0.6.1 "misaki[ja]==0.7.4" pyopenjtalk-plus faster-whisper numpy scipy soundfile pillow
+$PIP bpy==5.2.3 kokoro-onnx==0.6.1 "misaki[ja]==0.7.4" pyopenjtalk-plus faster-whisper numpy scipy soundfile pillow pyworld
 command -v ffmpeg >/dev/null || { apt-get update -qq && apt-get install -y -qq ffmpeg; }
 # Sticky Animation channel (channels/sticky): skia-python draws the frames; fonts are bundled in channels/sticky/fonts,
 # timing reuses faster-whisper + whisper_small from above.
