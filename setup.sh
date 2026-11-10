@@ -8,6 +8,8 @@ command -v ffmpeg >/dev/null || { apt-get update -qq && apt-get install -y -qq f
 # Sticky Animation channel (channels/sticky): skia-python draws the frames; fonts are bundled in channels/sticky/fonts,
 # timing reuses faster-whisper + whisper_small from above.
 $PIP skia-python==144.1
+# skia-python needs the system EGL/GL libraries (missing on GitHub's ubuntu runners and some workspaces).
+ldconfig -p | grep -q 'libEGL.so.1' || { SUDO=$(command -v sudo || true); $SUDO apt-get update -qq && $SUDO apt-get install -y -qq libegl1 libgl1 libgles2 >/dev/null; }
 
 mkdir -p .cache tts whisper_small jp_dl/dic
 cd .cache
