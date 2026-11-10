@@ -21,7 +21,8 @@ B = dict(
     A=(1, 40),          # medium: scrolling on the couch
     B=(41, 110),        # POV close-up of the phone: feed -> accidental tap on the camera icon -> front camera (he keeps swiping, unaware)
     C=(111, 180),       # reaction close-up: eyes slowly widen, drift off, one blink, back to the screen
-    D=(181, 300),       # over the shoulder: raise = normal, lower = horrifying, twice
+    D=(181, 216),       # v2 final: three-quarter medium - he physically raises the phone from chest to eye level
+    DP=(217, 300),      # v2 final: his POV - the normal angle, then a slow lower (phone sinks in frame), the bad angle returns, pause
     E=(301, 335),       # close-up: silent disappointment
     F=(336, 465),       # wide: screen off, phone face down, stillness, blanket over the head, hold
 )
@@ -96,14 +97,17 @@ doug_r = Rig(doug, 'doug', M['doug'], M['doug'], lift=0.17)
 SIT_LEGS = {'N': ((-0.17, -0.42, 0.0), (0, -1, 0.9)), 'P': ((0.17, -0.42, 0.0), (0, -1, 0.9))}
 # v2: real sitting legs. Thigh lies on the seat cushion (above its top at z=SEAT), knee just past the cushion's front edge,
 # shin hangs straight down in front of the couch base, foot flat on the rug. (root-local coords; root is at ROOT)
-KNEE_L = {'N': V(-0.17, -0.40, SEAT + 0.07), 'P': V(0.17, -0.40, SEAT + 0.07)}
-FOOT_L = {'N': V(-0.18, -0.44, 0.02), 'P': V(0.18, -0.44, 0.02)}
+# v2 final: the knee sits 0.50 in front of the hip (v2 WIP had 0.40, so the whole thigh was inside his belly and the shins
+# looked like they hung from his stomach). Now the thigh runs visibly along the cushion top, the knee clears the cushion's
+# front edge (y=-0.28 world) by 0.17, the shin drops plumb in front of the couch base with 0.12 clearance, feet flat on the rug.
+KNEE_L = {'N': V(-0.17, -0.50, SEAT + 0.075), 'P': V(0.17, -0.50, SEAT + 0.075)}
+FOOT_L = {'N': V(-0.19, -0.51, 0.03), 'P': V(0.19, -0.51, 0.03)}
 ROOT = V(0, 0.05, 0)
 doug_r.place(1, (ROOT.x, ROOT.y), 0)
 UP0 = V(0, 0, doug_r.base)
 def to_local(w, up=V(0, 0, 0)): return V(*w) - ROOT - UP0 - up       # upper body never rotates in this short
 def to_world(l, up=V(0, 0, 0)): return V(*l) + ROOT + UP0 + up
-LAP = {'N': V(-0.19, -0.33, 0.165), 'P': V(0.19, -0.33, 0.165)}      # hands resting on the thighs
+LAP = {'N': V(-0.19, -0.42, 0.19), 'P': V(0.19, -0.42, 0.19)}       # hands resting on top of the (now visible) thighs
 scene.frame_set(1)
 EYE_C = sum((e.matrix_world.translation for e in doug['eyes']), Vector()) / 2
 
@@ -113,20 +117,21 @@ def aim_quat(p, tgt):
     up = V(0, 0, 1); lz = (up - ly * up.dot(ly)).normalized(); lx = ly.cross(lz)
     return Matrix((lx, ly, lz)).transposed().to_quaternion()
 LOW = (V(0.05, -0.56, 0.96), None)
-HIGH = (V(0.08, -0.78, 1.6), None)
+HIGH = (V(0.12, -0.80, 1.48), None)      # v2 final: true eye level (eyes at z 1.456), a little to his right so it clears his face
 LOW = (LOW[0], aim_quat(LOW[0], EYE_C)); HIGH = (HIGH[0], aim_quat(HIGH[0], EYE_C))
 MIDP = V(0.46, -0.38, 0.72)
 SEATP = V(0.62, -0.06, SEAT + 0.007)
 SEATQ = Matrix(((-1, 0, 0), (0, 0, 1), (0, 1, 0))).transposed().to_quaternion()   # columns lx=-X, ly=+Z (back up), lz=+Y
 MIDQ = LOW[1].slerp(SEATQ, 0.6)
-PH_KEYS = [(1, LOW), (188, LOW), (206, HIGH), (226, HIGH), (240, LOW), (252, LOW), (262, HIGH), (272, HIGH), (282, LOW),
+RAISE, LOWER = (190, 212), (238, 268)     # v2 final: one clear comparison (v1 did it twice): raise, hold, slow lower, pause
+PH_KEYS = [(1, LOW), (RAISE[0], LOW), (RAISE[1], HIGH), (LOWER[0], HIGH), (LOWER[1], LOW),
            (346, LOW), (362, (MIDP, MIDQ)), (PUT_DOWN, (SEATP, SEATQ)), (N, (SEATP, SEATQ))]
 def phone_pose(f):
     for (fa, (pa, qa)), (fb, (pb, qb)) in zip(PH_KEYS, PH_KEYS[1:]):
         if fa <= f <= fb:
             t = smooth((f - fa) / max(1, fb - fa))
             p = pa.lerp(pb, t); q = qa.slerp(qb, t)
-            if f < 188:      # small idle drift while scrolling / staring
+            if f < RAISE[0]:      # small idle drift while scrolling / staring
                 p = p + V(0.004 * math.sin(f * 0.07), 0, 0.005 * math.sin(f * 0.05 + 1))
             return p, q
     return PH_KEYS[-1][1]
@@ -237,13 +242,13 @@ def look_target(f):
         return sc.lerp(AWAY, smooth((f - 150) / 6)) if f < 160 else AWAY.lerp(sc, smooth((f - 165) / 5))
     if f >= 374: return sc.lerp(V(0.0, -2.0, 1.45), smooth((f - 374) / 6))
     return sc
-BLINKS = [(30, 3), (160, 3)]
+BLINKS = [(30, 3), (160, 3), (226, 3)]          # one content blink while the angle is good
 def blink_amt(f):
     for b_, dur in BLINKS:
         if abs(f - b_) <= dur: return 1 - abs(f - b_) / (dur + 1)
     return 0.0
-LID_KEYS = [(1, 23), (114, 23), (124, 30), (132, 30), (150, -26), (190, -28), (206, -28), (216, 8), (238, 8), (244, -12), (258, 8), (264, 6),
-            (280, 6), (285, -10), (300, -8), (305, -8), (322, 32), (N, 32)]
+LID_KEYS = [(1, 23), (114, 23), (124, 30), (132, 30), (150, -26), (192, -26), (212, 6), (238, 8), (258, -4), (268, -16), (282, -12),
+            (300, -8), (305, -8), (322, 32), (N, 32)]      # v2 final: wide (low) -> relaxed (eye level) -> wide again as it sinks -> settles
 def lid_of(f):
     for (fa, a), (fb, b) in zip(LID_KEYS, LID_KEYS[1:]):
         if fa <= f <= fb: return a + (b - a) * smooth((f - fa) / max(1, fb - fa))
@@ -345,9 +350,11 @@ def selfie_cam(f):
 
 # ============================================================ CAMERAS
 SC = lambda f: PM(f) @ V(0, -0.007, 0)
+D_CAM = (V(-0.7, -1.65, 1.3), V(0.07, -0.4, 1.22), 27, 5.6, EYE_C + V(0, 0, -0.06))   # from his left: face, mouth and the whole arm move stay clear
 FACE = EYE_C + V(0, 0, -0.06)
 def cam_for(f):
     """-> (location, target, lens, fstop, focus point)"""
+    if SHOT == 'S': return V(2.3, -0.30, 0.78), V(0.0, -0.22, 0.62), 38, 16.0, V(0, -0.2, 0.6)
     if f <= B['A'][1]:
         t = (f - 1) / 40
         return V(0.3, -1.75, 1.42).lerp(V(0.27, -1.62, 1.4), t), V(0.03, -0.25, 1.17), 30, 4.0, FACE
@@ -357,13 +364,18 @@ def cam_for(f):
     if f <= B['C'][1]:      # reaction, from just past the phone
         t = smooth((f - 111) / 69)
         return V(0.24, -1.15, 1.2).lerp(V(0.2, -1.05, 1.22), t), FACE + V(0, 0, 0.1), 38, 4.0, FACE
-    if f <= B['D'][1]:      # over his left shoulder, following the phone
-        s = SC(f); return V(0.0, -0.335, 1.43), s, 40, 5.6, s       # his point of view, following the phone
+    if f <= B['D'][1]:      # v2 final: fixed three-quarter medium, the raise is a visible arm move (v1 hid it in a POV that followed the phone)
+        if os.environ.get('DCAM'):                                    # QA: try framings
+            v = [float(x) for x in os.environ['DCAM'].split(',')]; return V(*v[:3]), V(*v[3:6]), v[6], 5.6, FACE
+        return D_CAM
+    if f <= B['DP'][1]:     # his POV; the camera follows the phone only 80%, so as he lowers it the phone sinks in frame
+        s = SC(f); return V(0.0, -0.335, 1.43), s.lerp(SC(RAISE[1] + 6), 0.2), 40, 5.6, s
     if f <= B['E'][1]:
         t = smooth((f - 301) / 34)
         return V(0.2, -1.1, 1.22).lerp(V(0.16, -1.0, 1.25), t), FACE + V(0, 0, 0.1), 36, 4.0, FACE
     t = smooth((f - 336) / 129)
     return V(0.55, -1.78, 1.25).lerp(V(0.5, -1.7, 1.24), t), V(0.12, 0.0, 1.0), 24, 6.0, V(0.1, -0.1, 1.1)
+if SHOT == 'S': B['S'] = (1, N)     # QA only: profile view of the seated pose
 def cam_setup(name):
     a_, b_ = B[name]
     for f in range(a_, b_ + 1):
@@ -373,10 +385,15 @@ def cam_setup(name):
 
 if SHOT == 'QA':
     print('EYE_C', tuple(round(x, 3) for x in EYE_C), 'pins', {k: len(v) for k, v in PIN.items()})
-    print('eye pitch LOW', EYE_LOG[100], 'HIGH', EYE_LOG[220])
+    print('eye pitch LOW', EYE_LOG[100], 'HIGH', EYE_LOG[225])
+    for f in (20, 200, 225, 290, 380, 440):   # leg/couch clearances (world): shin back vs couch front, foot bottom vs rug, knee vs cushion edge
+        sh = to_world(FOOT_L['N']) - ROOT - UP0
+        kn = KNEE_L['N'] + ROOT; ft = FOOT_L['N'] + ROOT
+        print(f, 'knee y', round(kn.y, 3), 'z', round(kn.z, 3), '| shin back y', round(max(kn.y, ft.y) + 0.055, 3), 'vs couch front', -0.275,
+              '| foot bottom z', round(ft.z + 0.03 - 0.078 * 0.55, 3), 'vs rug', 0.012)
     json.dump({'SHOTS': B, 'N': N, 'CAM_ON': CAM_ON, 'SWIPES': SWIPES, 'SWIPE_CAM': SWIPE_CAM, 'TAP_CAM': TAP_CAM, 'TAP_OFF': TAP_OFF, 'SCREEN_OFF': SCREEN_OFF,
                'PUT_DOWN': PUT_DOWN, 'GRAB': GRAB, 'COVERED': COVERED, 'F_BLACK': F_BLACK,
-               'RAISE': [[188, 206], [252, 262]], 'LOWER': [[226, 240], [272, 282]]},
+               'RAISE': [list(RAISE)], 'LOWER': [list(LOWER)]},
               open(os.path.join(HERE, 'beats.json'), 'w'), indent=1)
     sys.exit(0)
 if SHOT == 'SEL':

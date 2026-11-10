@@ -7,7 +7,8 @@ run() { case " $SKIP " in *" $2 "*) echo "$2 skipped"; return;; esac
 run A A 2 1-40
 run B B 1 41-110
 run C C 2 111-180
-run D D 1 181-300
+run D D 1 181-216
+run DP DP 1 217-300
 run E E 2 301-335
 run F F1 2 336-397
 run F F2 1 398-440

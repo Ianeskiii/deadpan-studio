@@ -1,6 +1,6 @@
 import json, subprocess, os
 B = json.load(open('beats.json')); N = B['N']; FB = B['F_BLACK']
-PARTS = [('A', 1, 40, 2), ('B', 41, 110, 1), ('C', 111, 180, 2), ('D', 181, 300, 1), ('E', 301, 335, 2), ('F1', 336, 397, 2), ('F2', 398, 440, 1), ('F3', 441, FB - 1, 2)]
+PARTS = [('A', 1, 40, 2), ('B', 41, 110, 1), ('C', 111, 180, 2), ('D', 181, 216, 1), ('DP', 217, 300, 1), ('E', 301, 335, 2), ('F1', 336, 397, 2), ('F2', 398, 440, 1), ('F3', 441, FB - 1, 2)]
 os.makedirs('parts', exist_ok=True); lst = []
 for name, a, b, step in PARTS:
     dur = (b - a + 1) / 30

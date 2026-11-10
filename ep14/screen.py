@@ -63,7 +63,8 @@ def feed_frame(f, tap=0.0):
 # ------------------------------------------------------------------ front camera
 def lowness(f):
     """1 = phone low (the horrifying angle), 0 = raised (normal)"""
-    K = [(1, 1.0), (188, 1.0), (206, 0.0), (226, 0.0), (240, 1.0), (252, 1.0), (262, 0.0), (272, 0.0), (282, 1.0), (N, 1.0)]
+    (r0, r1), (l0, l1) = B['RAISE'][0], B['LOWER'][0]       # v2 final: one comparison, keyed from build.py's phone moves
+    K = [(1, 1.0), (r0, 1.0), (r1, 0.0), (l0, 0.0), (l1, 1.0), (N, 1.0)]
     for (fa, a), (fb, b) in zip(K, K[1:]):
         if fa <= f <= fb: return a + (b - a) * sm((f - fa) / max(1, fb - fa))
     return 1.0
