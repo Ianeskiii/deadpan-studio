@@ -15,3 +15,4 @@ jp_dl/
 *.wav
 *.txt
 __pycache__/
+!shorts/**/*.mp4
