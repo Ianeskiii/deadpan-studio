@@ -133,6 +133,15 @@ def tidy(times, sil):
         for k, t in enumerate(times):
             if a + 0.02 < t[0] < c and (k == 0 or times[k - 1][1] <= a + 0.15):
                 t[0] = round(c, 3); t[1] = max(t[1], round(c + 0.12, 3))
+    # whisper often stretches a short word across the pause next to it ("So" at the end of the last word, then 0.4 s of
+    # silence): a word that lies mostly inside a pause is moved to the side where it is really said
+    for a, c in sil:
+        if c - a < 0.25: continue
+        for t in times:
+            d = max(0.05, t[1] - t[0]); ov = max(0.0, min(t[1], c) - max(t[0], a))
+            if ov / d <= 0.6 or ov <= 0.15: continue
+            if a - t[0] >= 0.1: t[1] = round(a, 3)                                   # said before the pause
+            else: t[0] = round(c, 3); t[1] = round(max(t[1], c + 0.12), 3)           # said after it
     # whisper word starts can lag a little after a pause: snap the first word after each pause to where the speech resumes
     for _, c in sil:
         k = next((k for k, t in enumerate(times) if t[0] >= c - 0.05), None)
