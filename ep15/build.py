@@ -108,7 +108,7 @@ exec(open(os.path.join(HERE, '..', 'ep12', 'rig.py')).read())
 doug_r = Rig(doug, 'doug', M['doug'], M['doug'], lift=0.17)
 green_r = Rig(green, 'ricky', G_['ricky'], G_['track'], lift=0.17)
 doug_r.setup_bend(['doug_body'], (doug['zc'] + 0.15) - 0.25)
-G_ROOT = V(0.30, 0.05, 0); G_HEAD = -22           # on the couch, turned a little toward Doug
+G_ROOT = V(0.12, 0.05, 0); G_HEAD = -22           # on the couch, turned a little toward Doug (box hidden at his right hip)
 D_POS = V(-0.88, -1.30, 0)
 G_FACE = G_ROOT + V(0, 0, green_r.base + green_r.ez) + V(-0.08, -0.25, 0)
 D_HEAD = math.degrees(math.atan2((G_FACE - D_POS).x, -(G_FACE - D_POS).y))
@@ -180,17 +180,18 @@ box('fork_neck', (0.024, 0.004, 0.03), (0, 0, 0.15), STEEL, 0.001, fork)
 for tx in (-0.009, 0.0, 0.009): box('fork_tine', (0.0035, 0.0035, 0.045), (tx, 0, 0.185), STEEL, 0.001, fork)
 bite = empty('bite', (0, -0.012, 0.178), fork); bite.rotation_euler = (D(-90), 0, D(15))
 cake_slice('bite', 0.045, D(50), bite)
-# the box: white bakery box, lid flipped open, DOUG in marker on the front, one sad sliver left inside
+# the box: white bakery box, lid shut, DOUG in marker on the front. Green has shoved it behind his right hip on the couch:
+# hidden from Doug's side, but the label pokes out toward the camera, so the audience can see he is lying.
 BOX_W = mat('cakebox', hexc('#f4f1ea'), 0.8)
 BOX_IN = mat('cakebox_in', hexc('#e7dfd0'), 0.85)
 INK = mat('marker', hexc('#1b1f3a'), 0.6)
-cb = empty('cakebox', TABLE + V(-0.12, 0.0, 0.0)); cb.rotation_euler = (0, 0, D(42))
+cb = empty('cakebox', (0.43, 0.2, SEAT + 0.012)); cb.rotation_euler = (D(-10), D(4), D(34))
 BW_, BD_, BH_ = 0.34, 0.30, 0.11
 box('cb_bottom', (BW_, BD_, 0.006), (0, 0, 0.003), BOX_IN, 0, cb)
 box('cb_front', (BW_, 0.006, BH_), (0, -BD_ / 2, BH_ / 2), BOX_W, 0, cb)
 box('cb_back', (BW_, 0.006, BH_), (0, BD_ / 2, BH_ / 2), BOX_W, 0, cb)
 for sx in (-1, 1): box('cb_side', (0.006, BD_, BH_), (sx * BW_ / 2, 0, BH_ / 2), BOX_W, 0, cb)
-hinge = empty('cb_hinge', (0, BD_ / 2, BH_), cb); hinge.rotation_euler = (D(-105), 0, 0)
+hinge = empty('cb_hinge', (0, BD_ / 2, BH_), cb); hinge.rotation_euler = (D(-7), 0, 0)      # lid slammed shut in a hurry, not quite closed
 box('cb_lid', (BW_ + 0.01, BD_ + 0.01, 0.006), (0, BD_ / 2, 0), BOX_W, 0, hinge)
 mk = bpy.data.fonts.load(os.path.join(HERE, '..', 'ep12', 'marker.ttf'))
 name_t = text('DOUG', 0.105, (0, -BD_ / 2 - 0.004, BH_ / 2 + 0.002), INK, rot=(D(90), 0, 0), extrude=0.0005, parent=cb)
@@ -204,6 +205,11 @@ for i in range(9):          # crumbs + frosting streaks where the cake used to b
     x, y = _rnd.uniform(-0.13, 0.12), _rnd.uniform(-0.11, 0.11)
     sphere('crumb', _rnd.uniform(0.006, 0.011), SPONGE if i % 2 else FROST, (x, y, 0.01), (1, 1, 0.6), parent=cb)
 sphere('streak', 0.04, FROST, (0.05, -0.02, 0.006), (1.6, 0.6, 0.06), parent=cb)
+sphere('lid_smudge', 0.03, SMEAR, (0.1, -BD_ / 2 - 0.004, BH_ - 0.012), (1.4, 0.12, 0.5), parent=cb)   # frosting thumbprint on the box
+for i in range(8):          # crumb trail on the coffee table, where the box used to be
+    x, y = _rnd.uniform(-0.25, 0.25), _rnd.uniform(-0.12, 0.15)
+    sphere('tcrumb', _rnd.uniform(0.007, 0.012), SPONGE if i % 2 else FROST, (TABLE.x + x, TABLE.y + y, TABLE.z + 0.004), (1, 1, 0.6))
+sphere('ring', 0.13, SMEAR, (TABLE.x - 0.1, TABLE.y + 0.02, TABLE.z + 0.001), (0.9, 0.6, 0.012))   # frosting mark left by the box
 
 # ============================================================ EYES + LIDS
 def aim_eyes(C, T_, f):
@@ -227,7 +233,7 @@ for f in (1, N):
 
 # ============================================================ CAMERA
 SHOTS = dict(
-    TEST=(V(2.1, -2.0, 1.12), V(-0.26, -0.5, 0.9), 25, 8.0, V(-0.2, -0.6, 0.9)),   # wide two-shot: both + the box
+    TEST=(V(2.1, -2.0, 1.12), V(-0.24, -0.45, 0.9), 24, 8.0, V(-0.2, -0.6, 0.9)),   # wide two-shot: both, the hidden box beside Green
 )
 if SHOT == 'QA':
     print('D_HEAD', round(D_HEAD, 1), 'DEYE', tuple(round(x, 3) for x in DEYE), 'GEYE', tuple(round(x, 3) for x in GEYE))
