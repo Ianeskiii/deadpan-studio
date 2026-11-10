@@ -4,11 +4,11 @@
   "channel": "sticky",
   "description": "",
   "status": "working",
-  "stage": "Rendering",
-  "stageIndex": 6,
-  "progress": 67,
-  "etaMinutes": 30.0,
-  "note": "Rendering on the corrected timeline",
+  "stage": "Final check",
+  "stageIndex": 8,
+  "progress": 89,
+  "etaMinutes": 5.0,
+  "note": "Final check",
   "versions": [
     {
       "v": 1,
@@ -27,6 +27,6 @@
     }
   ],
   "createdAt": 1794287783770,
-  "updatedAt": 1794323642742,
+  "updatedAt": 1794323876760,
   "narrationAt": 1794292410070
 }
