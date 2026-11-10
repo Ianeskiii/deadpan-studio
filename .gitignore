@@ -16,3 +16,6 @@ jp_dl/
 *.txt
 __pycache__/
 !shorts/**/*.mp4
+**/screen/
+*.pc2
+**/parts/
