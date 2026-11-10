@@ -4,11 +4,11 @@
   "channel": "sticky",
   "description": "",
   "status": "working",
-  "stage": "Test frames",
-  "stageIndex": 5,
-  "progress": 56,
-  "etaMinutes": 40.0,
-  "note": "Test frames on the new timing (same shots)",
+  "stage": "Rendering",
+  "stageIndex": 6,
+  "progress": 67,
+  "etaMinutes": 30.0,
+  "note": "Rendering on the corrected timeline",
   "versions": [
     {
       "v": 1,
@@ -27,6 +27,6 @@
     }
   ],
   "createdAt": 1794287783770,
-  "updatedAt": 1794323617203,
+  "updatedAt": 1794323642742,
   "narrationAt": 1794292410070
 }
