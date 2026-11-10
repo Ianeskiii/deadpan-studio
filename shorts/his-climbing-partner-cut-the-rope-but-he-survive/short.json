@@ -3,14 +3,15 @@
   "title": "His Climbing Partner Cut the Rope… But He Survived — Joe Simpson.",
   "channel": "sticky",
   "description": "",
-  "status": "working",
-  "stage": "Writing narration",
-  "stageIndex": 1,
-  "progress": 11,
-  "etaMinutes": 10.0,
-  "note": "Researching and writing the narration",
+  "status": "needs-audio",
+  "stage": "Needs audio",
+  "stageIndex": 2,
+  "progress": 22,
+  "etaMinutes": null,
+  "note": "Written from well-established facts (Simpson's book Touching the Void); web search wasn't permitted in this unattended run, so please check before recording. Kept conservative: 'over twenty thousand feet' (Siula Grande is about 6,344 m / 20,814 ft), 'about an hour', 'about three days', 'over five miles' (accounts give 5 to 6 miles). The title is accurate. 'Still friends' reflects Simpson publicly defending Yates; their friendship later cooled in some accounts, so cut that line if unsure.",
   "versions": [],
   "revisions": [],
   "createdAt": 1794287783770,
-  "updatedAt": 1794292386982
+  "updatedAt": 1794292401812,
+  "narrationAt": 1794292401812
 }
