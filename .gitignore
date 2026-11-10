@@ -19,3 +19,12 @@ __pycache__/
 **/screen/
 *.pc2
 **/parts/
+# sticky channel: keep narration and episode text files, ignore render outputs
+!shorts/*/narration.txt
+!channels/sticky/**/lines.txt
+!channels/sticky/fonts/*.txt
+channels/sticky/**/stills/
+channels/sticky/**/*.png
+channels/sticky/**/poster.jpg
+channels/sticky/**/asr.json
+channels/sticky/**/result.json

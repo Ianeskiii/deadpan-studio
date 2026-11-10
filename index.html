@@ -124,6 +124,28 @@ details.revise textarea { min-height: 90px; margin: 8px 0 }
 @media (prefers-reduced-motion: reduce) { .bar i { transition: none } }
 .short .monitor video { background: #0b0c10 }
 a.btn { text-decoration: none; display: inline-flex; align-items: center }
+/* channels */
+:root { --sticky: #5b6cff; --sticky-ink: #ffffff }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --sticky: #8b97ff; --sticky-ink: #12141b } }
+:root[data-theme="dark"] { --sticky: #8b97ff; --sticky-ink: #12141b }
+.seg { display: flex; gap: 8px; flex-wrap: wrap }
+.seg button { flex: 1 1 180px; text-align: left; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: grid; gap: 2px; min-width: 0 }
+.seg button b { font-family: var(--display); font-size: 15px }
+.seg button span { color: var(--muted); font-size: 13px }
+.seg button[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); background: var(--surface) }
+.seg button[data-ch="sticky"][aria-pressed="true"] { border-color: var(--sticky); box-shadow: inset 0 0 0 1px var(--sticky) }
+.chan { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 4px; padding: 2px 7px; background: var(--doug); color: var(--doug-ink) }
+.chan.sticky { background: var(--sticky); color: var(--sticky-ink) }
+.pill.needs { color: var(--sticky) }
+.filters + .filters { margin-top: 6px }
+.filterset { display: grid; gap: 6px; justify-items: end }
+.narr { display: grid; gap: 8px; background: var(--sunk); border-radius: 8px; padding: 12px }
+.narr pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 14px/1.6 var(--body); max-height: 320px; overflow: auto; color: var(--ink) }
+.narr .lab { font-size: 13px; color: var(--muted) }
+.btn.sticky { background: var(--sticky); border-color: var(--sticky); color: var(--sticky-ink) }
+details.narr-more summary { cursor: pointer; font-weight: 600; font-size: 14px }
+details.narr-more .narr { margin-top: 8px }
+@media (max-width: 760px) { .filterset { justify-items: start } .actions .btn, .narr .btn { flex: 1 1 auto; justify-content: center } }
 .how { font-size: 14px; color: var(--muted) } .how code { font-family: var(--mono); font-size: 12px; background: var(--sunk); padding: 1px 5px; border-radius: 4px }
 </style>
 </head>
@@ -142,11 +164,19 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center }
   <div id="conn" class="note warn" hidden></div>
 
   <section class="view" id="view-new" hidden>
-    <div class="head"><div><h1>New short</h1><p class="sub">Describe the bit. Claude writes the timing, builds any missing character or scene, animates, voices, renders and checks it.</p></div></div>
+    <div class="head"><div><h1>New short</h1><p class="sub" id="sub-new">Describe the bit. Claude writes the timing, builds any missing character or scene, animates, voices, renders and checks it.</p></div></div>
     <div class="cols">
       <form class="panel" id="f-new" novalidate>
+        <div class="f"><span class="lab" id="lab-ch">Channel</span>
+          <div class="seg" id="pick-channel" role="group" aria-labelledby="lab-ch">
+            <button type="button" data-ch="deadpan-doug" aria-pressed="true"><b>Deadpan Doug</b><span>3D comedy, Blender</span></button>
+            <button type="button" data-ch="sticky" aria-pressed="false"><b>Sticky Animation</b><span>Stick-figure true stories, your ElevenLabs voice</span></button>
+          </div></div>
         <div class="f"><label for="in-title">Title</label>
-          <input type="text" id="in-title" maxlength="120" placeholder="When the barista still gets your name wrong" required></div>
+          <input type="text" id="in-title" maxlength="160" placeholder="When the barista still gets your name wrong" required></div>
+        <div class="f" id="sticky-fields" hidden><label for="in-notes">Extra notes <span class="opt">optional, e.g. names, angle, length</span></label>
+          <textarea id="in-notes" maxlength="3000" placeholder="Anything Claude should know, e.g. focus on the getaway, keep it under 90 seconds"></textarea></div>
+        <div id="doug-fields">
         <div class="f"><label for="in-desc">Description / act</label>
           <textarea id="in-desc" maxlength="6000" placeholder="What happens, beat by beat. Dialogue lines if any. Where the joke lands." required></textarea></div>
         <div class="f"><span class="lab">Duration <span class="opt">seconds, a range is fine</span></span>
@@ -159,9 +189,20 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center }
           <input type="text" id="in-newscene" maxlength="200" placeholder="Or describe a new place, e.g. laundromat at night"></div>
         <div class="f"><label for="in-ref">Reference video link <span class="opt">optional, e.g. a YouTube or Drive link</span></label>
           <input type="url" id="in-ref" maxlength="500" placeholder="https://…"></div>
+        </div>
         <div class="row"><button class="btn primary" type="submit">Add to queue</button><span class="msg" id="msg-new" role="status"></span></div>
       </form>
-      <aside class="panel">
+      <aside class="panel" id="how-sticky" hidden>
+        <h3>How a sticky short gets made</h3>
+        <ol class="flow">
+          <li><b>Add the title here.</b> GitHub opens with it filled in. Click <b>Commit changes</b>.</li>
+          <li><b>Claude researches and writes the narration</b>, with a strong hook, fast pacing and a loop.</li>
+          <li><b>The card says Needs audio.</b> Tap <b>Copy narration</b>, paste it into ElevenLabs and download the MP3.</li>
+          <li><b>Tap Upload narration audio</b> and drop the MP3 in. Click <b>Commit changes</b>. Not happy with the words? Use <b>Rewrite narration</b> first.</li>
+          <li><b>Claude makes the video to fit your audio.</b> It appears on the card when it's ready. Ask for changes with <b>Request a revision</b>.</li>
+        </ol>
+      </aside>
+      <aside class="panel" id="how-doug">
         <h3>How a short gets made</h3>
         <ol class="flow">
           <li><b>Add it here.</b> GitHub opens with your request filled in. Click <b>Commit changes</b> to save it.</li>
@@ -175,8 +216,13 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center }
 
   <section class="view" id="view-shorts" hidden>
     <div class="head"><div><h1>Shorts</h1><p class="sub" id="shorts-sum">Loading…</p></div>
-      <div class="filters" id="filters" role="group" aria-label="Filter shorts">
-        <button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="active" aria-pressed="false">In production</button><button type="button" data-f="ready" aria-pressed="false">Ready</button>
+      <div class="filterset">
+        <div class="filters" id="filters" role="group" aria-label="Filter shorts by status">
+          <button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="active" aria-pressed="false">In production</button><button type="button" data-f="needs" aria-pressed="false">Needs audio</button><button type="button" data-f="ready" aria-pressed="false">Ready</button>
+        </div>
+        <div class="filters" id="filters-ch" role="group" aria-label="Filter shorts by channel">
+          <button type="button" data-c="all" aria-pressed="true">All channels</button><button type="button" data-c="deadpan-doug" aria-pressed="false">Deadpan Doug</button><button type="button" data-c="sticky" aria-pressed="false">Sticky Animation</button>
+        </div>
       </div></div>
     <div class="shorts" id="list-shorts"><div class="empty">Loading shorts…</div></div>
   </section>

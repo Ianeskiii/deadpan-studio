@@ -2,6 +2,13 @@
 
 This repo is the production pipeline for **Tube Town / Deadpan Doug**, an animated YouTube Shorts series (English, US audience, 9:16, deadpan comedy in the spirit of Nobody Sausage). The owner uses several of their own Claude accounts. Any of them may open this repo and run production. Treat every account as the same owner.
 
+## Channels
+
+The studio runs two channels. Each short's `short.json` has a `channel` field; a short without one is `"deadpan-doug"`.
+
+- **`deadpan-doug`**: Tube Town / Deadpan Doug, 3D in Blender. Everything below this section is for this channel and is unchanged.
+- **`sticky`**: STICKY ANIMATION, stick-figure true-story shorts made in two stages with the owner's ElevenLabs voice in between. The pipeline lives in `channels/sticky/`, and **`channels/sticky/PLAYBOOK.md` is its instruction book**: the owner's two standard prompts word for word, the stages and every command. Sticky shorts use one extra status, `needs-audio` (narration written, waiting for the owner's MP3), plus `narration.txt` and the owner's `.mp3` in `shorts/<id>/`. Their revisions have `kind: "narration"` (back to Stage 1) or `kind: "video"` (Stage 2 only).
+
 ## The studio (queue and history live in this repo)
 
 Everything is plain files in this repo, so any of the owner's Claude accounts can run production with only the repo attached. Don't use the old claude.ai artifact studio (`studio/deadpan-studio.html`): other accounts can't read its data.
@@ -24,6 +31,7 @@ This usually runs by itself: `.github/workflows/run-queue.yml` starts Claude in 
 
 
 1. Run `python3 tools/studio.py queue`. It pulls, folds revision files into their short, and lists what's waiting, oldest first, plus library requests. It also lists anything stuck at `working` from an account that ran out of usage: resume those.
+   For each **sticky** short, `queue` prints which stage it needs ("STAGE 1 narration" or "STAGE 2 video"). Do that stage exactly as `channels/sticky/PLAYBOOK.md` says instead of steps 2–5 below. Sticky shorts waiting in `needs-audio` with no `.mp3` are skipped, so don't touch them. Everything else in this list is for Deadpan Doug shorts.
 2. For each short:
    - Run `python3 tools/studio.py stage <id> <stageIndex> [etaMinutes] ["note"]` at every stage (1 = Script & timing … 8 = Final check).
    - Build it as a new `epNN/` folder, the next free number, modelled on `ep12/` (dialogue) or `ep13/` (no dialogue). Set `"episode": "epNN"` in its short.json.
@@ -40,6 +48,7 @@ Commit and push often. If this account runs out of usage mid-render, the next ac
 ## Setup in a fresh workspace
 
 Run `bash setup.sh` (about a minute). It installs Blender (bpy 5.2.3), Kokoro TTS, misaki and pyopenjtalk for Japanese, faster-whisper and ffmpeg. It also rebuilds the model files, which are not committed: `tts/kokoro-q8.onnx`, `tts/voices.bin`, `tts/voices_jp.bin`, `whisper_small/` and `jp_dl/dic/`.
+For the sticky channel it also installs skia-python. The sticky fonts are committed in `channels/sticky/fonts/`, and its timing step reuses faster-whisper and `whisper_small/`.
 
 ## How an episode is built (see `ep12/` and `ep13/`)
 

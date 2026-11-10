@@ -6,7 +6,9 @@
   var RAW = "https://raw.githubusercontent.com/" + OWNER + "/" + REPO + "/" + BRANCH + "/";
   var API = "https://api.github.com/repos/" + OWNER + "/" + REPO;
   var STAGES = ["Queued", "Script & timing", "Voices", "Set & cast", "Animation", "Test frames", "Rendering", "Sound & edit", "Final check", "Ready"];
-  var S = { shorts: [], chars: [], scenes: [], reqs: [], revs: {}, filter: "all", picked: {}, ver: {}, live: true };
+  var STICKY_STAGES = ["Queued", "Writing narration", "Needs audio", "Timing", "Scenes", "Test frames", "Rendering", "Sound & edit", "Final check", "Ready"];
+  var CHANNELS = { "deadpan-doug": "Deadpan Doug", sticky: "Sticky" };
+  var S = { shorts: [], chars: [], scenes: [], reqs: [], revs: {}, narr: {}, mp3: {}, filter: "all", chFilter: "all", channel: "deadpan-doug", picked: {}, ver: {}, live: true };
   var $ = function (id) { return document.getElementById(id); };
 
   function el(tag, attrs, kids) {
@@ -21,6 +23,17 @@
   function slug(t) { return (t || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "short"; }
   function ago(t) { var m = Math.round((Date.now() - t) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; }
   function fmtMin(m) { m = Math.max(1, Math.round(m)); return m < 60 ? m + " min" : Math.floor(m / 60) + " h " + (m % 60) + " min"; }
+  function chanOf(s) { return s.channel || "deadpan-doug"; }
+  function getText(u) { return fetch(u, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); }); }
+  /* Sticky shorts: which state the card is in. */
+  function stickyState(s) {
+    var st = s.status || "queued", pend = (S.revs[s.id] || []).concat((s.revisions || []).filter(function (r) { return !r.done; }));
+    if (pend.some(function (r) { return r.kind === "narration"; })) return "writing";
+    if (st === "needs-audio") return S.mp3[s.id] ? "audio-in" : "needs";
+    if (st === "queued" || (st === "working" && (s.stageIndex || 0) <= 1)) return "writing";
+    if (st === "working" || st === "revision") return "video";
+    return st; // ready / failed
+  }
   function getJSON(u) { return fetch(u, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
   function say(id, t, cls) { var m = $(id); m.textContent = t; m.className = "msg " + (cls || ""); }
 
@@ -38,17 +51,21 @@
       var shortFiles = paths.filter(function (p) { return /^shorts\/[^/]+\/short\.json$/.test(p); });
       var revFiles = paths.filter(function (p) { return /^shorts\/[^/]+\/revision-[^/]+\.json$/.test(p); });
       var reqFiles = paths.filter(function (p) { return /^library\/requests\/[^/]+\.json$/.test(p); });
+      var narrFiles = paths.filter(function (p) { return /^shorts\/[^/]+\/narration\.txt$/.test(p); });
+      S.mp3 = {}; paths.forEach(function (p) { var m = /^shorts\/([^/]+)\/[^/]+\.mp3$/i.exec(p); if (m) S.mp3[m[1]] = true; });
       var safe = function (p) { return getJSON(base + p).then(function (d) { d.__path = p; return d; }, function () { return null; }); };
       return Promise.all([
         Promise.all(shortFiles.map(safe)), Promise.all(revFiles.map(safe)), Promise.all(reqFiles.map(safe)),
         getJSON(base + "library/characters.json").catch(function () { return []; }),
-        getJSON(base + "library/scenes.json").catch(function () { return []; })
+        getJSON(base + "library/scenes.json").catch(function () { return []; }),
+        Promise.all(narrFiles.map(function (p) { return getText(base + p).then(function (t) { return [p.split("/")[1], t]; }, function () { return null; }); }))
       ]);
     }).then(function (r) {
       S.shorts = r[0].filter(Boolean).map(function (s) { s.id = s.id || s.__path.split("/")[1]; return s; })
         .sort(function (a, b) { return (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0); });
       S.revs = {}; r[1].filter(Boolean).forEach(function (v) { var id = v.__path.split("/")[1]; (S.revs[id] = S.revs[id] || []).push(v); });
       S.reqs = r[2].filter(Boolean); S.chars = r[3]; S.scenes = r[4];
+      S.narr = {}; r[5].filter(Boolean).forEach(function (x) { S.narr[x[0]] = x[1].trim(); });
       $("conn").hidden = S.live; $("conn").textContent = "Showing the last published copy. Brand-new requests may take a few minutes to appear.";
       renderAll();
     }).catch(function () { $("conn").hidden = false; $("conn").textContent = "The studio data couldn't be loaded. Check your connection and reload."; });
@@ -72,17 +89,21 @@
 
   function renderShorts() {
     var list = S.shorts.filter(function (s) {
+      if (S.chFilter !== "all" && chanOf(s) !== S.chFilter) return false;
+      if (S.filter === "needs") return chanOf(s) === "sticky" && stickyState(s) === "needs";
       return S.filter === "all" || (S.filter === "ready" ? s.status === "ready" : s.status !== "ready");
     });
     $("n-shorts").textContent = S.shorts.length || "";
     var ready = S.shorts.filter(function (s) { return s.status === "ready"; }).length;
-    $("shorts-sum").textContent = S.shorts.length ? S.shorts.length + " shorts · " + ready + " ready · " + (S.shorts.length - ready) + " in the queue" : "Nothing yet. Add a short to start.";
+    var needs = S.shorts.filter(function (s) { return chanOf(s) === "sticky" && stickyState(s) === "needs"; }).length;
+    $("shorts-sum").textContent = S.shorts.length ? S.shorts.length + " shorts · " + ready + " ready · " + (S.shorts.length - ready) + " in the queue" + (needs ? " · " + needs + " need your audio" : "") : "Nothing yet. Add a short to start.";
     var box = $("list-shorts"); box.textContent = "";
     if (!list.length) box.appendChild(el("div", { class: "empty", text: "No shorts here." }));
     list.forEach(function (s) { box.appendChild(card(s)); });
   }
 
   function card(s) {
+    if (chanOf(s) === "sticky") return stickyCard(s);
     var vers = s.versions || [], vi = S.ver[s.id] != null ? S.ver[s.id] : vers.length - 1, cur = vers[vi];
     var mon = el("div", { class: "monitor" }, [cur
       ? el("video", { src: media(s.id, cur.video), poster: media(s.id, cur.poster), controls: "", playsinline: "", preload: "none" })
@@ -91,7 +112,7 @@
     var chars = (s.characters || []).map(function (c) { var x = S.chars.filter(function (k) { return k.id === c; })[0]; return x ? x.name : c; });
     var scene = S.scenes.filter(function (k) { return k.id === s.scene; })[0];
     var body = el("div", { class: "body" }, [
-      el("div", {}, [el("h2", { text: s.title || s.id }), el("div", { class: "meta" }, [el("span", { class: "pill " + (st === "failed" ? "revision" : st), text: label }),
+      el("div", {}, [el("h2", { text: s.title || s.id }), el("div", { class: "meta" }, [el("span", { class: "chan", text: CHANNELS["deadpan-doug"] }), el("span", { class: "pill " + (st === "failed" ? "revision" : st), text: label }),
         el("span", { text: (s.durationMin || "?") + (s.durationMax && s.durationMax !== s.durationMin ? "–" + s.durationMax : "") + " s" }),
         chars.length ? el("span", { text: chars.join(", ") }) : el("span", { text: "Doug" }),
         scene ? el("span", { text: scene.name }) : s.newScene ? el("span", { text: s.newScene }) : null,
@@ -129,6 +150,83 @@
     if (act.childNodes.length) body.appendChild(act);
     return el("article", { class: "short" }, [mon, body]);
   }
+  /* ---------- sticky card: writing narration -> needs audio -> making video -> ready ---------- */
+  function copyText(t, mid) {
+    var done = function () { say(mid, "Narration copied. Paste it into ElevenLabs.", "ok"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(t).then(done, function () { fallbackCopy(t, mid); });
+    fallbackCopy(t, mid);
+  }
+  function fallbackCopy(t, mid) {
+    var ta = el("textarea", { style: "position:fixed;top:0;left:0;opacity:0" }); ta.value = t; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); say(mid, "Narration copied. Paste it into ElevenLabs.", "ok"); } catch (e) { say(mid, "Couldn't copy. Select the text and copy it by hand.", "err"); }
+    document.body.removeChild(ta);
+  }
+  function narrBox(s, withButtons) {
+    var t = S.narr[s.id] || "", mid = "narr-msg-" + s.id;
+    var kids = [el("span", { class: "lab", text: "Narration · " + (t ? t.split(/\s+/).length + " words" : "loading…") }), el("pre", { text: t || "The narration will appear here." })];
+    if (withButtons) kids.push(el("div", { class: "row" }, [
+      el("button", { class: "btn sticky", type: "button", text: "Copy narration", disabled: t ? null : "", onclick: function () { copyText(t, mid); } }),
+      el("a", { class: "btn", href: "https://github.com/" + OWNER + "/" + REPO + "/upload/" + BRANCH + "/shorts/" + s.id, target: "_blank", rel: "noopener", text: "Upload narration audio" }),
+      el("span", { class: "msg", id: mid, role: "status" })]));
+    return el("div", { class: "narr" }, kids);
+  }
+  function reviseBox(s, kind, summary, placeholder, button, okText) {
+    var ta = el("textarea", { maxlength: 4000, placeholder: placeholder, "aria-label": summary + " for " + (s.title || s.id) });
+    var mid = kind + "-msg-" + s.id, m = el("span", { class: "msg", id: mid, role: "status" });
+    return el("details", { class: "revise" }, [el("summary", { text: summary }), ta, el("div", { class: "row" }, [
+      el("button", { class: "btn primary", type: "button", text: button, onclick: function () {
+        var t = ta.value.trim(); if (t.length < 5) return say(mid, "Describe what should change.", "err");
+        var at = Date.now(); propose("shorts/" + s.id + "/revision-" + at + ".json", { text: t, at: at, done: false, kind: kind }, mid, okText);
+      } }), m])]);
+  }
+  function stickyCard(s) {
+    var vers = s.versions || [], vi = S.ver[s.id] != null ? S.ver[s.id] : vers.length - 1, cur = vers[vi];
+    var ss = stickyState(s);
+    var label = { writing: "Writing narration", needs: "Needs audio", "audio-in": "Audio received", video: "Making video", ready: "Ready", failed: "Failed" }[ss] || ss;
+    var pill = { writing: "working", needs: "needs", "audio-in": "working", video: "working", ready: "ready", failed: "revision" }[ss] || "queued";
+    var slate = { writing: "Writing the narration", needs: "Waiting for your narration audio", "audio-in": "Audio received. The video starts soon", video: s.stage || "Making the video", failed: "Couldn't be made" }[ss] || "";
+    var mon = el("div", { class: "monitor" }, [cur
+      ? el("video", { src: media(s.id, cur.video), poster: media(s.id, cur.poster), controls: "", playsinline: "", preload: "none" })
+      : el("div", { class: "slate" }, [el("b", { text: ss === "video" ? (s.progress || 0) + "%" : ss === "needs" ? "MP3?" : "—" }), slate])]);
+    var body = el("div", { class: "body" }, [
+      el("div", {}, [el("h2", { text: s.title || s.id }), el("div", { class: "meta" }, [el("span", { class: "chan sticky", text: CHANNELS.sticky }),
+        el("span", { class: "pill " + pill, text: label }), cur && cur.seconds ? el("span", { text: cur.seconds + " s" }) : null])]),
+      s.description ? el("p", { class: "desc clamp", text: "Notes: " + s.description }) : null
+    ]);
+    if (ss === "needs") {
+      body.appendChild(el("p", { class: "desc", text: "Copy the narration into ElevenLabs, then upload the MP3 into this short's folder and click Commit changes. The video starts by itself." + (s.note ? "\nFact-check notes: " + s.note : "") }));
+      body.appendChild(narrBox(s, true));
+      body.appendChild(reviseBox(s, "narration", "Rewrite narration", "What should change in the words? e.g. make the hook about the vault door", "Send back for rewriting",
+        "GitHub opened in a new tab. Click Commit changes; Claude rewrites the narration."));
+    } else if (ss !== "ready") {
+      var idx = Math.max(0, Math.min(9, s.stageIndex || 0));
+      var eta = ss === "writing" ? (s.status === "working" ? "Researching and writing" : "Waiting for Claude to pick it up. It starts by itself; this can take a few minutes.")
+        : ss === "audio-in" ? "Audio received. Claude starts the video within a few minutes."
+        : ss === "failed" ? (s.note || "Couldn't be made")
+        : s.etaMinutes != null ? "About " + fmtMin(s.etaMinutes - (Date.now() - (s.updatedAt || Date.now())) / 60000) + " left" : "Working";
+      body.appendChild(el("div", { class: "strip" }, [
+        el("div", { class: "bar", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": s.progress || 0 }, [el("i", { style: "width:" + (s.progress || 0) + "%;background:var(--sticky)" })]),
+        el("div", { class: "meta" }, [el("span", { class: "eta", text: eta }), s.updatedAt ? el("span", { text: "Updated " + ago(s.updatedAt) }) : null, s.note && ss !== "failed" ? el("span", { text: s.note }) : null]),
+        el("div", { class: "stages" }, STICKY_STAGES.slice(1).map(function (n, i) { return el("span", { class: i + 1 < idx ? "done" : i + 1 === idx && s.status === "working" ? "now" : "", text: n }); }))]));
+      if (S.narr[s.id] && ss !== "writing") body.appendChild(el("details", { class: "narr-more" }, [el("summary", { text: "Narration" }), narrBox(s, false)]));
+    }
+    if (vers.length) {
+      var vrow = el("div", { class: "vers" }, [el("span", { class: "tag", text: "VERSIONS" })]);
+      vers.forEach(function (v, i) { vrow.appendChild(el("button", { type: "button", "aria-pressed": String(i === vi), text: "v" + v.v, title: v.notes || "", onclick: function () { S.ver[s.id] = i; renderShorts(); } })); });
+      if (cur) vrow.appendChild(el("span", { class: "meta", text: (cur.seconds ? cur.seconds + " s · " : "") + (cur.notes || "") }));
+      body.appendChild(vrow);
+      if (ss === "ready" && S.narr[s.id]) body.appendChild(el("details", { class: "narr-more" }, [el("summary", { text: "Narration" }), narrBox(s, false)]));
+    }
+    var revs = (s.revisions || []).concat((S.revs[s.id] || []).filter(function (r) { return !(s.revisions || []).some(function (x) { return x.at === r.at; }); }));
+    if (revs.length) body.appendChild(el("div", { class: "revs" }, revs.map(function (r) {
+      var what = r.kind === "narration" ? "Narration " : "Video ";
+      return el("div", { class: "rev" + (r.done ? "" : " open"), text: what + (r.done ? (r.doneIn === "narration" ? "rewritten: " : "done in v" + (r.doneIn || "?") + ": ") : "change requested: ") + r.text });
+    })));
+    if (vers.length && s.status !== "working") body.appendChild(reviseBox(s, "video", "Request a revision", "What should change in the video? e.g. slower cuts in the middle, bigger map", "Queue revision",
+      "GitHub opened in a new tab. Click Commit changes to queue the revision."));
+    if (cur) body.appendChild(el("div", { class: "actions" }, [el("a", { class: "btn", href: media(s.id, cur.video), download: slug(s.title) + "_v" + cur.v + ".mp4", text: "Download v" + cur.v })]));
+    return el("article", { class: "short" }, [mon, body]);
+  }
   function descNode(s) {
     var p = el("p", { class: "desc clamp", text: s.description || "" });
     if ((s.description || "").length < 220) return p;
@@ -161,10 +259,27 @@
   }
 
   /* ---------- forms ---------- */
+  function setChannel(ch) {
+    S.channel = ch;
+    $("pick-channel").querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.ch === ch)); });
+    var sticky = ch === "sticky";
+    $("sticky-fields").hidden = !sticky; $("doug-fields").hidden = sticky; $("how-sticky").hidden = !sticky; $("how-doug").hidden = sticky;
+    $("sub-new").textContent = sticky ? "Give it a title. Claude researches the story and writes the narration; you voice it in ElevenLabs and upload the MP3; Claude makes the video to fit." : "Describe the bit. Claude writes the timing, builds any missing character or scene, animates, voices, renders and checks it.";
+    $("in-title").placeholder = sticky ? "Thieves Broke Into a Diamond Vault Thought to Be Impenetrable — Antwerp diamond heist, 2003" : "When the barista still gets your name wrong";
+    say("msg-new", "");
+  }
+  $("pick-channel").addEventListener("click", function (ev) { var b = ev.target.closest("button"); if (b) setChannel(b.dataset.ch); });
   $("f-new").addEventListener("submit", function (ev) {
     ev.preventDefault();
     var title = $("in-title").value.trim(), desc = $("in-desc").value.trim();
     if (title.length < 3) return say("msg-new", "Give the short a title.", "err");
+    if (S.channel === "sticky") {
+      var sid = slug(title), sn = 2; while (S.shorts.some(function (s) { return s.id === sid; })) sid = slug(title).slice(0, 44) + "-" + sn++;
+      var t0 = Date.now();
+      return propose("shorts/" + sid + "/short.json", { id: sid, title: title, channel: "sticky", description: $("in-notes").value.trim(),
+        status: "queued", stage: "Queued", stageIndex: 0, progress: 0, etaMinutes: null, note: "", versions: [], revisions: [], createdAt: t0, updatedAt: t0 },
+        "msg-new", "GitHub opened in a new tab. Click Commit changes; Claude writes the narration first.");
+    }
     if (desc.length < 10) return say("msg-new", "Describe what happens in the short.", "err");
     var a = +$("in-dmin").value || 15, b = +$("in-dmax").value || a; if (b < a) { var t = a; a = b; b = t; }
     var id = slug(title), n = 2; while (S.shorts.some(function (s) { return s.id === id; })) id = slug(title).slice(0, 44) + "-" + n++;
@@ -183,6 +298,7 @@
     });
   }
   addLib("f-char", "character", "c-name", "c-desc", "msg-char"); addLib("f-scene", "scene", "s-name", "s-desc", "msg-scene");
+  $("filters-ch").addEventListener("click", function (ev) { var b = ev.target.closest("button"); if (!b) return; S.chFilter = b.dataset.c; $("filters-ch").querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); }); renderShorts(); });
   $("filters").addEventListener("click", function (ev) { var b = ev.target.closest("button"); if (!b) return; S.filter = b.dataset.f; $("filters").querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); }); renderShorts(); });
 
   /* ---------- routing ---------- */
@@ -193,5 +309,5 @@
   }
   window.addEventListener("hashchange", route); route();
   load();
-  setInterval(function () { if (document.visibilityState === "visible" && S.shorts.some(function (s) { return s.status === "working"; })) load(); }, 120000);
+  setInterval(function () { if (document.visibilityState === "visible" && S.shorts.some(function (s) { return s.status === "working" || s.status === "queued" || (chanOf(s) === "sticky" && stickyState(s) === "audio-in"); })) load(); }, 120000);
 })();

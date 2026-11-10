@@ -1,6 +1,6 @@
 name: Run the queue
-# Starts by itself when a short or a revision is committed (from the website), every 3 hours to resume
-# anything left half-done, or by hand from the Actions tab ("Run workflow").
+# Starts by itself when a short or a revision is committed (from the website), when a sticky short's narration
+# MP3 is uploaded into shorts/<id>/, every 3 hours to resume anything left half-done, or by hand from the Actions tab.
 on:
   push:
     branches: [main]
@@ -8,6 +8,9 @@ on:
       - "shorts/*/short.json"
       - "shorts/*/revision-*.json"
       - "library/requests/*.json"
+      - "shorts/*/*.mp3"
+      - "shorts/*/*.MP3"
+      - "shorts/*/*.Mp3"
   schedule:
     - cron: "17 */3 * * *"
   workflow_dispatch:
@@ -36,8 +39,14 @@ jobs:
         id: check
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import glob, json
-          busy = any(json.load(open(p)).get("status") in ("queued", "revision", "working") for p in glob.glob("shorts/*/short.json"))
+          import glob, json, os
+          def waiting(p):
+              d = json.load(open(p)); folder = os.path.dirname(p)
+              has_mp3 = any(f.lower().endswith(".mp3") for f in os.listdir(folder))
+              if d.get("channel") == "sticky" and d.get("status") == "needs-audio":
+                  return has_mp3  # waiting for the owner's narration audio: skip until an .mp3 is committed
+              return d.get("status") in ("queued", "revision", "working")
+          busy = any(waiting(p) for p in glob.glob("shorts/*/short.json"))
           busy = busy or bool(glob.glob("shorts/*/revision-*.json") or glob.glob("library/requests/*.json"))
           print("work=" + ("yes" if busy else "no"))
           PY
@@ -70,7 +79,7 @@ jobs:
           claude_args: |
             --model claude-opus-5-5
             --max-turns 600
-            --allowedTools "Bash,Read,Write,Edit,MultiEdit,Glob,Grep,TodoWrite"
+            --allowedTools "Bash,Read,Write,Edit,MultiEdit,Glob,Grep,TodoWrite,WebSearch,WebFetch"
 
       - name: Produce (account 2)
         id: a2
@@ -86,7 +95,7 @@ jobs:
           claude_args: |
             --model claude-opus-5-5
             --max-turns 600
-            --allowedTools "Bash,Read,Write,Edit,MultiEdit,Glob,Grep,TodoWrite"
+            --allowedTools "Bash,Read,Write,Edit,MultiEdit,Glob,Grep,TodoWrite,WebSearch,WebFetch"
 
       - name: Produce (account 3)
         id: a3
@@ -102,12 +111,12 @@ jobs:
           claude_args: |
             --model claude-opus-5-5
             --max-turns 600
-            --allowedTools "Bash,Read,Write,Edit,MultiEdit,Glob,Grep,TodoWrite"
+            --allowedTools "Bash,Read,Write,Edit,MultiEdit,Glob,Grep,TodoWrite,WebSearch,WebFetch"
 
       - name: Save any unpushed progress
         if: always() && steps.check.outputs.work == 'yes'
         run: |
-          git add -A shorts library EPISODES.md ep* 2>/dev/null || true
+          git add -A shorts library EPISODES.md ep* channels/sticky 2>/dev/null || true
           git diff --cached --quiet || git commit -qm "Save progress from queue run"
           git pull -q --rebase origin main || true
           git push -q origin HEAD:main || true

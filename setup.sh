@@ -5,6 +5,9 @@ cd "$(dirname "$0")"
 PIP="pip install -q --break-system-packages"
 $PIP bpy==5.2.3 kokoro-onnx==0.6.1 "misaki[ja]==0.7.4" pyopenjtalk-plus faster-whisper numpy scipy soundfile pillow
 command -v ffmpeg >/dev/null || { apt-get update -qq && apt-get install -y -qq ffmpeg; }
+# Sticky Animation channel (channels/sticky): skia-python draws the frames; fonts are bundled in channels/sticky/fonts,
+# timing reuses faster-whisper + whisper_small from above.
+$PIP skia-python==144.1
 
 mkdir -p .cache tts whisper_small jp_dl/dic
 cd .cache
@@ -27,4 +30,5 @@ cat .cache/whisper-p{0,1,2,3}/package/model.bin.part* > whisper_small/model.bin
 tar xzf .cache/kokoro-js-jp/package/dist/open_jtalk_dic_utf_8-1.11.tar.gz -C jp_dl/dic
 
 python3 -c "import bpy, kokoro_onnx, faster_whisper; print('Blender', bpy.app.version_string)"
+python3 -c "import skia; print('skia-python', skia.__version__, '(sticky channel)')"
 echo "Setup done."

@@ -13,3 +13,14 @@ Finished videos (with all versions) live on the studio site. The code for each e
 | ep13 | When You Watch Anime With Subtitles | v1 | No dialogue from Doug; Japanese anime audio (jm_kumo, jf_alpha) with English subtitles. `anime.py` → `vo13.py` → `build.py` → `render.sh` → `audio.py` → `assemble.py` |
 
 Add a row here every time a short or revision is finished.
+
+## Sticky Animation
+
+Code for each sticky short is in `channels/sticky/episodes/<id>/` (the first four, made by hand before the channel joined the studio, are in `channels/sticky/examples/`).
+
+| Folder | Short | Versions | Notes |
+|---|---|---|---|
+| examples/virginia-hall | A Spy With a Prosthetic Leg Became One of the Nazis' Most Wanted Enemies | v1 | 41 shots, 105.8 s |
+| examples/kara-robinson | A Kidnapped Teenager Memorized Her Captor's Apartment… Then Escaped | v1 | 40 shots, 91.2 s |
+| examples/james-howells-bitcoin | The Man Who Accidentally Threw Away $800 Million in Bitcoin | v1 | 34 shots, 91.0 s |
+| examples/coughing-major | The Man Who Cheated His Way to a Million With a Cough | v1 | 33 shots, 84.2 s |
