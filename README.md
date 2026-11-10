@@ -9,7 +9,7 @@ The production pipeline behind **Tube Town / Deadpan Doug**: animated YouTube Sh
 ## Using it from any of your Claude accounts
 
 1. **Queue a short** on the website. GitHub opens with the request filled in; click **Commit changes**. You can also tell any Claude session with this repo attached: "queue this short: …".
-2. **Make it:** in any Claude account with GitHub connected, start a session with `Ianeskiii/deadpan-studio` attached and say **"run the queue"**. On first use Claude runs `bash setup.sh` (about a minute).
+2. **It gets made automatically.** Committing the request starts the "Run the queue" GitHub Action, which runs Claude with your Claude subscription tokens (repo secrets `CLAUDE_TOKEN_1` to `CLAUDE_TOKEN_3`, one per account). You can also start it by hand from the Actions tab, or say "run the queue" in any Claude session with the repo attached.
 3. **Watch** progress and play or download the videos on the website. Ask for changes with **Request a revision**.
 
 Everything (briefs, status, videos and libraries) lives in this repo, so no account depends on another.

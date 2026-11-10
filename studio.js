@@ -101,7 +101,7 @@
     if (st !== "ready") {
       var idx = Math.max(0, Math.min(STAGES.length - 1, s.stageIndex || 0));
       var eta = st === "working" && s.etaMinutes != null ? "About " + fmtMin(s.etaMinutes - (Date.now() - (s.updatedAt || Date.now())) / 60000) + " left"
-        : st === "working" ? "Working" : st === "failed" ? (s.note || "Couldn't be made") : "Waiting. Say “run the queue” in any Claude account with the repo attached.";
+        : st === "working" ? "Working" : st === "failed" ? (s.note || "Couldn't be made") : "Waiting for Claude to pick it up. It starts by itself; this can take a few minutes.";
       body.appendChild(el("div", { class: "strip" }, [
         el("div", { class: "bar", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": s.progress || 0 }, [el("i", { style: "width:" + (s.progress || 0) + "%" })]),
         el("div", { class: "meta" }, [el("span", { class: "eta", text: eta }), s.updatedAt ? el("span", { text: "Updated " + ago(s.updatedAt) }) : null, s.note && st !== "failed" ? el("span", { text: s.note }) : null]),

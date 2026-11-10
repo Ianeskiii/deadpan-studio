@@ -1,0 +1,113 @@
+name: Run the queue
+# Starts by itself when a short or a revision is committed (from the website), every 3 hours to resume
+# anything left half-done, or by hand from the Actions tab ("Run workflow").
+on:
+  push:
+    branches: [main]
+    paths:
+      - "shorts/*/short.json"
+      - "shorts/*/revision-*.json"
+      - "library/requests/*.json"
+  schedule:
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: run-queue      # one production run at a time; new triggers wait their turn
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  produce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    env:
+      HAS2: ${{ secrets.CLAUDE_TOKEN_2 != '' && 'yes' || 'no' }}
+      HAS3: ${{ secrets.CLAUDE_TOKEN_3 != '' && 'yes' || 'no' }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Anything waiting?
+        id: check
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import glob, json
+          busy = any(json.load(open(p)).get("status") in ("queued", "revision", "working") for p in glob.glob("shorts/*/short.json"))
+          busy = busy or bool(glob.glob("shorts/*/revision-*.json") or glob.glob("library/requests/*.json"))
+          print("work=" + ("yes" if busy else "no"))
+          PY
+
+      - uses: actions/setup-python@v6
+        if: steps.check.outputs.work == 'yes'
+        with:
+          python-version: "3.13"
+
+      - name: Set up the pipeline
+        if: steps.check.outputs.work == 'yes'
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg libxi6 libxkbcommon0 libsm6 libgl1 >/dev/null
+          bash setup.sh
+          git config user.name "Deadpan Studio"
+          git config user.email "noreply@anthropic.com"
+
+      # One step per Claude account. If an account hits its usage limit, the next one carries on from what was pushed.
+      - name: Produce (account 1)
+        id: a1
+        if: steps.check.outputs.work == 'yes'
+        continue-on-error: true
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_TOKEN_1 }}
+          prompt: |
+            Run the queue. Follow CLAUDE.md exactly. The pipeline is already set up (setup.sh has run) and git is configured to push to main.
+            You are running unattended in GitHub Actions: nobody can answer questions, so make reasonable choices and note them in the short's notes.
+            Use tools/studio.py for every status change so progress shows on the website, and push often.
+          claude_args: |
+            --model claude-opus-5-5
+            --max-turns 600
+            --allowedTools "Bash,Read,Write,Edit,MultiEdit,Glob,Grep,TodoWrite"
+
+      - name: Produce (account 2)
+        id: a2
+        if: steps.check.outputs.work == 'yes' && steps.a1.outcome == 'failure' && env.HAS2 == 'yes'
+        continue-on-error: true
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_TOKEN_2 }}
+          prompt: |
+            Run the queue. Follow CLAUDE.md exactly. The pipeline is already set up (setup.sh has run) and git is configured to push to main.
+            You are running unattended in GitHub Actions: nobody can answer questions, so make reasonable choices and note them in the short's notes.
+            Use tools/studio.py for every status change so progress shows on the website, and push often.
+          claude_args: |
+            --model claude-opus-5-5
+            --max-turns 600
+            --allowedTools "Bash,Read,Write,Edit,MultiEdit,Glob,Grep,TodoWrite"
+
+      - name: Produce (account 3)
+        id: a3
+        if: steps.check.outputs.work == 'yes' && steps.a2.outcome == 'failure' && env.HAS3 == 'yes'
+        continue-on-error: true
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_TOKEN_3 }}
+          prompt: |
+            Run the queue. Follow CLAUDE.md exactly. The pipeline is already set up (setup.sh has run) and git is configured to push to main.
+            You are running unattended in GitHub Actions: nobody can answer questions, so make reasonable choices and note them in the short's notes.
+            Use tools/studio.py for every status change so progress shows on the website, and push often.
+          claude_args: |
+            --model claude-opus-5-5
+            --max-turns 600
+            --allowedTools "Bash,Read,Write,Edit,MultiEdit,Glob,Grep,TodoWrite"
+
+      - name: Save any unpushed progress
+        if: always() && steps.check.outputs.work == 'yes'
+        run: |
+          git add -A shorts library EPISODES.md ep* 2>/dev/null || true
+          git diff --cached --quiet || git commit -qm "Save progress from queue run"
+          git pull -q --rebase origin main || true
+          git push -q origin HEAD:main || true

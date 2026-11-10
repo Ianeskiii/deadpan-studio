@@ -20,6 +20,9 @@ STAGES = `["Queued", "Script & timing", "Voices", "Set & cast", "Animation", "Te
 
 ## "Run the queue"
 
+This usually runs by itself: `.github/workflows/run-queue.yml` starts Claude in GitHub Actions whenever a short, revision or library request is committed, every 3 hours to resume unfinished work, or by hand from the Actions tab. It uses the repo secrets `CLAUDE_TOKEN_1`, `CLAUDE_TOKEN_2` and `CLAUDE_TOKEN_3` (one per Claude account, made with `claude setup-token`). When one account hits its limit, the next one continues. One run lasts at most about 6 hours. A chat session saying "run the queue" does the same work by hand.
+
+
 1. Run `python3 tools/studio.py queue`. It pulls, folds revision files into their short, and lists what's waiting, oldest first, plus library requests. It also lists anything stuck at `working` from an account that ran out of usage: resume those.
 2. For each short:
    - Run `python3 tools/studio.py stage <id> <stageIndex> [etaMinutes] ["note"]` at every stage (1 = Script & timing … 8 = Final check).
