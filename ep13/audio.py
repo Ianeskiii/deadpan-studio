@@ -1,5 +1,6 @@
 """TV audio (JP dialogue + original dramatic score) heard in a quiet living room; everything on the TV stops dead at the silence."""
-import numpy as np, json, wave, soundfile as sf
+import numpy as np, json, wave, os, soundfile as sf
+VO = os.environ.get('VO', 'vo'); OUT = os.environ.get('OUT', 'anime_audio.wav')   # V2: VO=vo2 OUT=anime_audio_v2.wav
 SR = 48000; T = json.load(open('vo/timing.json')); B = json.load(open('beats.json'))
 N = B['N']; DUR = N / 30; n = int(DUR * SR); t = np.arange(n) / SR
 STOP = (B['F_SILENCE'] - 1) / 30; BLACK = (B['F_BLACK'] - 1) / 30
@@ -38,8 +39,11 @@ for tt0 in np.arange(bar, STOP, 0.125):
     put(tv, note(220 * 2 ** ((tt0 - bar) * 0.8 / 12), 0.12, 0.03, attack=0.01), tt0)
 # ---- dialogue: dry, a little hot (anime mix)
 for l in lines:
-    a = load(f"vo/l{l['i']:02d}.wav"); a = np.tanh(a / np.abs(a).max() * 1.6) / np.tanh(1.6)
+    a = load(f"{VO}/l{l['i']:02d}.wav"); hot = 2.2 if VO != 'vo' else 1.6   # shouted takes are driven a bit harder
+    a = np.tanh(a / np.abs(a).max() * hot) / np.tanh(hot)
     put(tv, a, l['t'], 0.62)
+if os.path.exists(f'{VO}/breaths.json'):
+    for b in json.load(open(f'{VO}/breaths.json')): put(tv, load(f"{VO}/breath_{b['i']:02d}.wav"), b['t'], 0.5)
 tv[int(STOP * SR):] = 0                                   # the TV goes silent at once
 # ---- TV speaker + room: band-limit, small-room reflection
 tv = bp(tv, 110, 7500)
@@ -52,6 +56,6 @@ mix = tvr + room
 mix[int(BLACK * SR):] *= np.linspace(1, 0, n - int(BLACK * SR)) ** 2   # fade the room out over the black
 pk = np.abs(mix).max(); mix = mix / pk * 10 ** (-1.5 / 20)
 st = np.stack([mix, np.roll(mix, 240) * 0.98 + mix * 0.02], 1)
-with wave.open('anime_audio.wav', 'wb') as w:
+with wave.open(OUT, 'wb') as w:
     w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes((st * 32767).astype('<i2').tobytes())
 print('audio', round(DUR, 2), 's; TV stops at', round(STOP, 2), 's; black at', round(BLACK, 2))
