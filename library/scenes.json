@@ -13,7 +13,7 @@
     "name": "Living room at night",
     "order": 2,
     "status": "ready",
-    "usedIn": "Anime with subtitles",
+    "usedIn": "Anime with subtitles, Front camera",
     "id": "living-room",
     "image": "library/img/living-room.jpg"
   },

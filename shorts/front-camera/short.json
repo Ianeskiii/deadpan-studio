@@ -14,11 +14,11 @@
   "stage": "Rendering",
   "stageIndex": 6,
   "progress": 67,
-  "etaMinutes": 75.0,
-  "note": "Rendering: phone front-camera pass, then 8 film parts (Cycles 12 spp, 75%)",
+  "etaMinutes": 60.0,
+  "note": "Rendering film parts: A, B, C done; D (phone up/down comparison) in progress",
   "revisions": [],
   "createdAt": 1794277536599,
-  "updatedAt": 1794286266021,
+  "updatedAt": 1794289595111,
   "episode": "ep14",
   "versions": []
 }
