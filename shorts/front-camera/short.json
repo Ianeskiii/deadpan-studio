@@ -10,15 +10,23 @@
   "newCharacters": "",
   "scene": "",
   "newScene": "",
-  "status": "working",
-  "stage": "Final check",
-  "stageIndex": 8,
-  "progress": 89,
-  "etaMinutes": 5.0,
-  "note": "Final check: 15.8 s, 1080x1920, screen comparison and blanket verified on frames",
+  "status": "ready",
+  "stage": "Ready",
+  "stageIndex": 9,
+  "progress": 100,
+  "etaMinutes": null,
+  "note": "",
   "revisions": [],
   "createdAt": 1794277536599,
-  "updatedAt": 1794292350607,
+  "updatedAt": 1794292368260,
   "episode": "ep14",
-  "versions": []
+  "versions": [
+    {
+      "v": 1,
+      "video": "v1.mp4",
+      "poster": "v1.jpg",
+      "seconds": 15.8,
+      "notes": "v1 (ep14), no dialogue, 15.8 s. Choices made unattended: reused the living-room set in evening lamp light with the TV off. The phone screen is a real render from the phone's front camera on the same Doug model, so only the angle and the cheap-camera grade (from the phone's own under-light) change. Doug has no nose, so there are no nostrils; the low angle gives the looming chin/body, a tiny face and a hat seen from below. The up/down comparison is shown from Doug's point of view so the screen stays readable. The blanket is draped over the couch back and pulled over his head (cloth sim). Sound: screen taps, a small camera-open blip, set-down, blanket rustle, room tone."
+    }
+  ]
 }
