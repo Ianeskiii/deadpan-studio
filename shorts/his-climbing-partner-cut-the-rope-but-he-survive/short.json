@@ -3,12 +3,12 @@
   "title": "His Climbing Partner Cut the Rope… But He Survived — Joe Simpson.",
   "channel": "sticky",
   "description": "",
-  "status": "revision",
-  "stage": "Queued",
-  "stageIndex": 0,
-  "progress": 0,
-  "etaMinutes": null,
-  "note": "",
+  "status": "working",
+  "stage": "Timing",
+  "stageIndex": 3,
+  "progress": 33,
+  "etaMinutes": 60.0,
+  "note": "Re-timing the narration with the new alignment",
   "versions": [
     {
       "v": 1,
@@ -27,6 +27,6 @@
     }
   ],
   "createdAt": 1794287783770,
-  "updatedAt": 1794322557183,
+  "updatedAt": 1794322636734,
   "narrationAt": 1794292410070
 }
