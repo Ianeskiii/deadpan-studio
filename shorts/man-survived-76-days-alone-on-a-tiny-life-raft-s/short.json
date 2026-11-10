@@ -1,1 +1,16 @@
-{"id":"man-survived-76-days-alone-on-a-tiny-life-raft-s","title":"Man Survived 76 Days Alone on a Tiny Life Raft — Steven Callahan.","channel":"sticky","description":"","status":"queued","stage":"Queued","stageIndex":0,"progress":0,"etaMinutes":null,"note":"","versions":[],"revisions":[],"createdAt":1794302097474,"updatedAt":1794302097474}
+{
+  "id": "man-survived-76-days-alone-on-a-tiny-life-raft-s",
+  "title": "Man Survived 76 Days Alone on a Tiny Life Raft — Steven Callahan.",
+  "channel": "sticky",
+  "description": "",
+  "status": "working",
+  "stage": "Writing narration",
+  "stageIndex": 1,
+  "progress": 11,
+  "etaMinutes": 10.0,
+  "note": "Researching and writing the narration",
+  "versions": [],
+  "revisions": [],
+  "createdAt": 1794302097474,
+  "updatedAt": 1794322581638
+}
