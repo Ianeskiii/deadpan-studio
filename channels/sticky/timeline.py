@@ -35,7 +35,11 @@ def main(ep, narr, audio, model=None):
 
     from faster_whisper import WhisperModel
     wm = WhisperModel(model, device='cpu', compute_type='int8')
-    segs, _ = wm.transcribe(narr_wav, language='en', word_timestamps=True, beam_size=5, vad_filter=False,
+    import soundfile as sf  # decode ourselves (faster-whisper's PyAV path breaks with some av versions)
+    w16 = os.path.join(ep, 'n16.wav')
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', narr_wav, '-ac', '1', '-ar', '16000', w16], check=True)
+    pcm, _ = sf.read(w16, dtype='float32')
+    segs, _ = wm.transcribe(pcm, language='en', word_timestamps=True, beam_size=5, vad_filter=False,
                             initial_prompt=' '.join(lines)[:800])
     asr = [dict(w=w.word.strip(), t0=round(w.start, 3), t1=round(w.end, 3)) for s in segs for w in s.words]
     json.dump(asr, open(os.path.join(ep, 'asr.json'), 'w'), indent=0)
@@ -60,6 +64,12 @@ def main(ep, narr, audio, model=None):
         for k, wgt in zip(range(i, j), wts):
             d = (g1 - g0) * wgt / tot; times[k] = [round(x, 3), round(x + d, 3)]; x += d
         i = j
+    # whisper word starts can lag a little after a pause: snap the first word after each pause to where the speech resumes
+    for _, c in sil:
+        k = next((k for k, t in enumerate(times) if t[0] >= c - 0.05), None)
+        if k is not None and times[k][0] - c < 0.5 and (k == 0 or times[k - 1][1] <= c + 0.1):
+            times[k][0] = round(c, 3)
+    if times: times[0][0] = min(times[0][0], 0.0 if times[0][0] < 0.5 else times[0][0])
     for k in range(len(times) - 1):  # keep words in order and non-overlapping
         times[k + 1][0] = max(times[k + 1][0], times[k][0] + 0.05)
         times[k][1] = max(min(times[k][1], times[k + 1][0]), times[k][0] + 0.05)

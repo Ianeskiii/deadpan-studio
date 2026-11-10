@@ -57,7 +57,7 @@ The pipeline lives in `channels/sticky/` (skia-python at 1080x1920, 30 fps, libx
 2. `stage <id> 4 50 "Building the shots"`. Write the episode's `scenes.py` like the delivered examples in `channels/sticky/examples/` (Virginia Hall, Kara Robinson, James Howells, the Coughing Major), with `from core import *`:
    - **30–40 distinct, hand-built shots**, about one per 2–3 seconds, each starting on the narration beat it illustrates (`lt0(i)`, `wt(i, 'word')`). Never repeat a layout back to back. Recurring story motifs are good (they make it one story), identical frames are not.
    - Add any new props, sets or characters to `channels/sticky/lib.py` (it's cumulative: `CHARS.update({...})`, new draw functions; new hair kinds by wrapping `hair`). Check what exists first (`grep -n "^def " lib.py`).
-   - **Hook** = `scenes()[0]`, camera A exactly `(1.0, 540, 960)`, and `shot_hook(cv, T, frozen=False)` must draw a clean frame when `frozen=True`. render.py blends the last 0.62 s into that frozen frame, so the video loops.
+   - **Hook** = `scenes()[0]`, camera A exactly `(1.0, 540, 960)`, and `shot_hook(cv, T, frozen=False)` must draw a clean frame when `frozen=True`. render.py blends the last 0.75 s into that frozen frame, so the video loops.
    - **Transitions:** give every shot one of `'cut' 'fade' 'whip' 'zoom' 'wipe' 'flash'`. Mix them and match them to the beat (flash for impacts, whip for time jumps, zoom for reveals).
    - **Camera:** a slow push or pan on every shot (camA → camB). render.py adds the handheld drift.
    - **Grade:** `ACTS = [(t, tint, strength), ...]`, one tint per act, ending on the first act's tint. Then `def overlay(cv, T): grade(cv, T, ACTS)` (adds grain and vignette).

@@ -86,7 +86,7 @@ def frame(i, T, surf, tmp):
     else:
         draw_scene(cv, i, T)
     end = TL['total']
-    b = clamp((T - (end - 0.62)) / 0.6)
+    b = clamp((T - (end - 0.75)) / 0.6)   # fully on the frozen hook for the last ~0.15 s
     if b > 0:  # loop: blend into the frozen first frame of the hook (SC[0] must accept frozen=True)
         hs = skia.Surface(W, H); hc = hs.getCanvas(); hc.clear(skia.ColorBLACK)
         hc.save(); apply_cam(hc, SC[0][3][0]); SC[0][2](hc, 0.0, frozen=True); hc.restore()

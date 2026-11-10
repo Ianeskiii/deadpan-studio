@@ -24,7 +24,7 @@ def newest_mp3(i):
     if not files: sys.exit(f'No .mp3 in shorts/{i}/ yet.')
     def committed(f):  # newest by git commit time, falling back to mtime
         r = subprocess.run(['git', 'log', '-1', '--format=%ct', '--', f], cwd=ROOT, capture_output=True, text=True)
-        return int(r.stdout.strip() or 0) or os.path.getmtime(f)
+        return (int(r.stdout.strip() or 0), os.path.getmtime(f))
     return max(files, key=committed)
 
 def prep(i):
@@ -74,7 +74,7 @@ def mux(d):
     run(['ffmpeg', '-v', 'error', '-y', '-ss', '1.0', '-i', 'final.mp4', '-vframes', '1', '-q:v', '3', 'poster.jpg'], cwd=d)
     dur = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', 'final.mp4'], cwd=d, capture_output=True, text=True).stdout)
     run(['ffmpeg', '-v', 'error', '-y', '-i', 'final.mp4', '-vf', r'select=eq(n\,0)', '-vframes', '1', 'loop_first.png'], cwd=d)
-    run(['ffmpeg', '-v', 'error', '-y', '-sseof', '-0.05', '-i', 'final.mp4', '-update', '1', 'loop_last.png'], cwd=d)
+    run(['ffmpeg', '-v', 'error', '-y', '-sseof', '-0.3', '-i', 'final.mp4', '-update', '1', 'loop_last.png'], cwd=d)
     import numpy as np; from PIL import Image
     a = np.asarray(Image.open(os.path.join(d, 'loop_first.png')), float); b = np.asarray(Image.open(os.path.join(d, 'loop_last.png')), float)
     diff = abs(a - b).mean()
