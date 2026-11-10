@@ -17,9 +17,16 @@
   "progress": 100,
   "etaMinutes": null,
   "note": "",
-  "revisions": [],
+  "revisions": [
+    {
+      "text": "V2: Doug eye acting follows the evidence with head moves and blinks; clearly visible crumb fall in a medium shot that both notice; Green freezes then recovers; fewer repeated close-ups; exact ending with Doug stare, slow blink, ~0.85 s hold, cut to black.",
+      "at": 1794329432072,
+      "done": true,
+      "doneIn": 2
+    }
+  ],
   "createdAt": 1794321348330,
-  "updatedAt": 1794321348401,
+  "updatedAt": 1794329432103,
   "episode": "ep15",
   "channel": "deadpan-doug",
   "versions": [
@@ -29,6 +36,13 @@
       "poster": "v1.jpg",
       "seconds": 19.0,
       "notes": "First cut"
+    },
+    {
+      "v": 2,
+      "video": "v2.mp4",
+      "poster": "v2.jpg",
+      "seconds": 20.2,
+      "notes": "V2: Doug's gaze and head follow fork, box, frosting and face with natural blinks; crumb slips from Green's lip, falls and lands on his shirt in a medium shot, both look down; Green freezes then recovers for '...That's not mine.'; varied camera (wider Doug, medium crumb shot, MCU on final line); Doug's final stare with slow blink and ~0.85 s hold; fixed Green's brows poking through his beanie."
     }
   ]
 }
