@@ -63,9 +63,9 @@ g4e = place('g4', H0 + 28)          # Green: "...That's not mine."
 B['H'] = (H0, g4e + 6)
 # ---- I  Doug close-up: the long, unimpressed stare.  Then black.
 I0 = B['H'][1] + 1
-B['D_SLOWBLINK'] = I0 + 18            # one slow blink, then ~0.9 s of stare
-B['I'] = (I0, I0 + 50)
-B['BLACK'] = (I0 + 51, I0 + 58)
+B['D_SLOWBLINK'] = I0 + 22            # hold the stare, one slow blink, then ~0.85 s more of stare
+B['I'] = (I0, I0 + 55)
+B['BLACK'] = (I0 + 56, I0 + 63)
 N = B['BLACK'][1]
 B['A'] = (1, A_END)
 B['SHOTS'] = {k: B[k] for k in ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I')}

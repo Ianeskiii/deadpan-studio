@@ -294,7 +294,7 @@ sl.scale = (0.86, 0.86, 1); sl.keyframe_insert('scale', frame=18)
 # ============================================================ THE CRUMB (falls out of his mouth onto his jacket)
 crumb_e = empty('crumb_e', tuple(G_MOUTH_L + V(0, -0.012, -0.012)), green_r.upper)
 cake_slice('crumb', 0.062, D(60), crumb_e)
-CK = 0.62                                         # piece of cake ~4 cm: slice layers scaled down
+CK = 0.8                                         # piece of cake ~4 cm: slice layers scaled down
 crumb_e.rotation_euler = (D(70), D(20), 0)
 LAND = V(0.025, -0.31, 0.40)                       # on the jacket front, chest height (sticks: it's frosting)
 C_IN = G_MOUTH_L + V(0, 0.0, -0.008)            # inside the lips
@@ -352,7 +352,7 @@ G_BZ = [b.location.z for b in green['brows']]
 def g_brows(f, dz, tilt):
     for i, bp in enumerate(green['brows']):
         sx = -1 if i == 0 else 1
-        bp.location = (bp.location.x, bp.location.y, G_BZ[i] + min(dz, 0.012)); bp.keyframe_insert('location', frame=f)
+        bp.location = (bp.location.x, bp.location.y, G_BZ[i] + min(dz, 0.0)); bp.keyframe_insert('location', frame=f)
         bp.rotation_euler = (0, sx * D(-6 + tilt), 0); bp.keyframe_insert('rotation_euler', frame=f)
 def blink_amt(f, blinks):
     for b_, dur in blinks:
@@ -459,7 +459,7 @@ def cam_for(f):
     if f <= SH['E'][1]: return g_cu(1.2, 27, -0.06)
     if f <= SH['F'][1]:        # MEDIUM: mouth, chest and lap in frame for the whole fall; a very slow creep in
         t = smooth((f - SH['F'][0]) / (SH['F'][1] - SH['F'][0]))
-        d0 = rotz(-dDG, -10); p = GF + d0 * 1.45 + V(0, 0, -0.12); tg = GF + V(0, 0, -0.26)
+        d0 = rotz(-dDG, -32); p = GF + d0 * 1.5 + V(0, 0, -0.12); tg = GF + V(0, 0, -0.26)
         return p + d0 * (-0.03 * t), tg, 30, 5.6, GM + V(0, 0, -0.08)
     if f <= SH['G'][1]: return WIDE[0] + V(-0.04, 0.05, 0), WIDE[1], WIDE[2] + 0.6, WIDE[3], WIDE[4]
     if f <= SH['H'][1]:        # medium close: face + the cake on his shirt, both clear of the subtitle
