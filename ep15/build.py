@@ -293,16 +293,17 @@ sl.scale = (0.86, 0.86, 1); sl.keyframe_insert('scale', frame=18)
 
 # ============================================================ THE CRUMB (falls out of his mouth onto his jacket)
 crumb_e = empty('crumb_e', tuple(G_MOUTH_L + V(0, -0.012, -0.012)), green_r.upper)
-cake_slice('crumb', 0.034, D(60), crumb_e)
+cake_slice('crumb', 0.062, D(60), crumb_e)
+CK = 0.62                                         # piece of cake ~4 cm: slice layers scaled down
 crumb_e.rotation_euler = (D(70), D(20), 0)
-LAND = V(0.025, -0.3, 0.40)                       # on the jacket front, chest height (sticks: it's frosting)
+LAND = V(0.025, -0.31, 0.40)                       # on the jacket front, chest height (sticks: it's frosting)
 C_IN = G_MOUTH_L + V(0, 0.0, -0.008)            # inside the lips
-C_LIP = G_MOUTH_L + V(0.004, -0.03, -0.024)       # hanging off the lower lip
+C_LIP = G_MOUTH_L + V(0.004, -0.04, -0.03)       # hanging off the lower lip
 for f in range(1, N + 1):
     if f < SL0: p, s, r = C_IN, 0.001, (D(70), D(20), 0)                                      # still in his mouth
     elif f <= SL1:
         t = smooth((f - SL0) / (SL1 - SL0))
-        p = C_IN.lerp(C_LIP, t); s = 0.55 + 0.45 * t; r = (D(70 + 25 * t), D(20), 0)
+        p = C_IN.lerp(C_LIP, t); s = 0.2 + 0.8 * t; r = (D(70 + 25 * t), D(20), 0)
     elif f < CR0:                                                                                # hangs there, trembling
         k = f - SL1; p = C_LIP + V(0, 0, -0.002 * (k / (CR0 - SL1))); s = 1.0
         r = (D(95 + 4 * math.sin(k * 1.9) + 6 * (k / (CR0 - SL1)) ** 2), D(20), 0)
@@ -312,6 +313,7 @@ for f in range(1, N + 1):
         s = 1.0; r = (D(101 + 109 * t), D(20 + 60 * t), D(30 * t))
     else:
         k = f - CR1; p = LAND + V(0, 0, 0.012 * math.exp(-k / 2) * abs(math.sin(k * 1.6))); s = 1.0; r = (D(210), D(80), D(30))
+    s *= CK if s > 0.01 else 1
     crumb_e.location = p; crumb_e.scale = (s, s, s); crumb_e.rotation_euler = r
     for pth in ('location', 'scale', 'rotation_euler'): crumb_e.keyframe_insert(pth, frame=f)
 
@@ -350,7 +352,7 @@ G_BZ = [b.location.z for b in green['brows']]
 def g_brows(f, dz, tilt):
     for i, bp in enumerate(green['brows']):
         sx = -1 if i == 0 else 1
-        bp.location = (bp.location.x, bp.location.y, G_BZ[i] + dz); bp.keyframe_insert('location', frame=f)
+        bp.location = (bp.location.x, bp.location.y, G_BZ[i] + min(dz, 0.012)); bp.keyframe_insert('location', frame=f)
         bp.rotation_euler = (0, sx * D(-6 + tilt), 0); bp.keyframe_insert('rotation_euler', frame=f)
 def blink_amt(f, blinks):
     for b_, dur in blinks:
@@ -457,8 +459,8 @@ def cam_for(f):
     if f <= SH['E'][1]: return g_cu(1.2, 27, -0.06)
     if f <= SH['F'][1]:        # MEDIUM: mouth, chest and lap in frame for the whole fall; a very slow creep in
         t = smooth((f - SH['F'][0]) / (SH['F'][1] - SH['F'][0]))
-        d0 = rotz(-dDG, -14); p = GF + d0 * 1.55 + V(0, 0, -0.12); tg = GF + V(0, 0, -0.26)
-        return p + d0 * (-0.1 * t), tg, 30, 5.6, GM + V(0, 0, -0.08)
+        d0 = rotz(-dDG, -10); p = GF + d0 * 1.45 + V(0, 0, -0.12); tg = GF + V(0, 0, -0.26)
+        return p + d0 * (-0.03 * t), tg, 30, 5.6, GM + V(0, 0, -0.08)
     if f <= SH['G'][1]: return WIDE[0] + V(-0.04, 0.05, 0), WIDE[1], WIDE[2] + 0.6, WIDE[3], WIDE[4]
     if f <= SH['H'][1]:        # medium close: face + the cake on his shirt, both clear of the subtitle
         d0 = rotz(-dDG, -20); return GF + d0 * 1.35 + V(0, 0, -0.03), GF + V(0, 0, -0.2), 29, 4.5, GF + V(0, 0, -0.1)
