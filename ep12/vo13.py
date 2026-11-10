@@ -1,0 +1,43 @@
+"""v2 dialogue: clean whole-phrase takes, no pitch shifting, Doug = am_fenrir (passes the ASR clarity check)."""
+import sys, numpy as np, soundfile as sf
+sys.path.insert(0, '../tts')
+from kokoro_onnx import Kokoro
+k = Kokoro('../tts/kokoro-q8.onnx', '../tts/voices.bin')
+SR = 24000; rng = np.random.default_rng(13)
+B, DG = 'af_heart', 'am_fenrir'
+def trim(a):
+    nz = np.where(np.abs(a) > 0.008)[0]; return a[max(0, nz[0] - 240): nz[-1] + 900]
+def tx(t, v, s): return trim(k.create(t, voice=v, speed=s, lang='en-us')[0])
+def ph(p, v, s): return trim(k.create(p, voice=v, speed=s, is_phonemes=True)[0])
+def sil(s): return np.zeros(int(s * SR))
+def breath(dur=0.24, amp=0.03, inhale=True):
+    n = int(dur * SR); z = rng.standard_normal(n)
+    b = np.convolve(z, np.ones(14) / 14, 'same') - np.convolve(z, np.ones(110) / 110, 'same')
+    e = np.sin(np.linspace(0, np.pi, n)) ** (1.4 if inhale else 0.8)
+    if not inhale: e *= np.linspace(1, 0.25, n)
+    return b * e * amp / (np.abs(b).max() + 1e-9)
+def fade(a, ms=8):
+    n = int(ms * SR / 1000); a = a.copy(); a[:n] *= np.linspace(0, 1, n); a[-n:] *= np.linspace(1, 0, n); return a
+def tone(a, presence=0.2, lowcut=85):
+    from numpy.fft import rfft, irfft, rfftfreq
+    n = len(a) + 2048; F = rfft(a, n); f = rfftfreq(n, 1 / SR)
+    H = 1 / np.sqrt(1 + (lowcut / np.maximum(f, 1)) ** 4) * (1 + presence * np.exp(-((f - 3000) / 1500) ** 2))
+    return irfft(F * H, n)[:len(a)]
+def room(a, wet=0.1, rt=0.32):
+    n = int(rt * 1.4 * SR); t = np.arange(n) / SR
+    ir = rng.standard_normal(n) * np.exp(-6.9 * t / rt); ir[:int(0.006 * SR)] = 0
+    ir = np.convolve(ir, np.ones(6) / 6, 'same'); ir /= np.sqrt(np.sum(ir ** 2))
+    w = np.convolve(a, ir); return np.concatenate([a, np.zeros(len(w) - len(a))]) + wet * w
+def norm(a): return a / (np.abs(a).max() + 1e-9) * 0.89
+def build(name, parts, wet=0.1):
+    a = np.concatenate([fade(p) if len(p) > 600 else p for p in parts])
+    a = norm(room(tone(a), wet)); sf.write(f'vo2/{name}.wav', a, SR); print(name, round(len(a) / SR, 2))
+build('b1', [breath(0.18, 0.025), tx('Name for the order?', B, 1.0)])
+build('d1', [ph('dˈʌɡ', DG, 0.85)])
+build('b2', [breath(0.16, 0.025), tx('How do you spell that?', B, 1.0)])
+L = [ph(p, DG, 0.85) for p in ('dˈiː.', 'ˈoʊ.', 'jˈuː.', 'dʒˈiː.')]
+build('d2', [breath(0.22, 0.03), L[0], sil(0.42), L[1], sil(0.42), L[2], sil(0.5), L[3]])
+build('b3', [tx('Perfect.', B, 1.02), sil(0.12), tx('Got it!', B, 1.06)])
+build('b4', [breath(0.22, 0.04), tx('Coffee for...', B, 0.98), sil(0.34), ph('dˈɔːɡ!', B, 0.85)], wet=0.18)
+build('d3', [breath(0.32, 0.035, inhale=False), sil(0.15), tx('I literally spelled it.', DG, 0.88)])
+build('b5', [ph('jˈɛə?', B, 1.0)])

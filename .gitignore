@@ -1,0 +1,17 @@
+# rebuilt by setup.sh
+.cache/
+tts/kokoro-q8.onnx
+tts/voices.bin
+tts/voices_jp.bin
+whisper_small/
+jp_dl/
+# render outputs
+**/frames*/
+**/tv/
+**/vo*/
+**/ov*/
+**/compare/
+*.mp4
+*.wav
+*.txt
+__pycache__/

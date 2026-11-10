@@ -1,0 +1,407 @@
+<title>Deadpan Studio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: a production desk. Sticky header with four views (New short / Shorts / Characters / Scenes);
+   shorts are slate-style cards with a 9:16 monitor on the left and the production strip on the right. */
+:root {
+  --bg: #eef0f3; --surface: #ffffff; --sunk: #e3e6eb; --ink: #1b2030; --muted: #5d6578; --line: #d3d8e0;
+  --doug: #e8b52e; --doug-ink: #3a2c05; --hat: #cf4f3a; --ok: #2f8a5b; --info: #3b6fd6; --on-accent: #ffffff;
+  --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12141b; --surface: #1c1f29; --sunk: #262a36; --ink: #eceae4; --muted: #9aa2b4; --line: #323746;
+  --doug: #e8b52e; --doug-ink: #2a2004; --hat: #e8705b; --ok: #56b987; --info: #7fa3f0; --on-accent: #12141b; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12141b; --surface: #1c1f29; --sunk: #262a36; --ink: #eceae4; --muted: #9aa2b4; --line: #323746;
+  --doug: #e8b52e; --doug-ink: #2a2004; --hat: #e8705b; --ok: #56b987; --info: #7fa3f0; --on-accent: #12141b; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface) }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.2 }
+button, input, select, textarea { font: inherit; color: inherit }
+:focus-visible { outline: 2px solid var(--info); outline-offset: 2px }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--surface); border-bottom: 1px solid var(--line) }
+header.top .wrap { display: flex; align-items: center; gap: 8px 20px; flex-wrap: wrap; padding-block: 10px }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 700; font-size: 18px }
+.mark { width: 22px; height: 30px; border-radius: 11px; background: var(--doug); position: relative; flex: none }
+.mark::before { content: ""; position: absolute; left: -4px; right: -4px; top: -2px; height: 9px; border-radius: 5px 5px 2px 2px; background: var(--hat) }
+.mark::after { content: ""; position: absolute; left: 5px; right: 5px; top: 13px; height: 3px; border-radius: 2px; background: var(--doug-ink); box-shadow: 0 6px 0 -1px var(--doug-ink) }
+nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto }
+nav.tabs a { text-decoration: none; color: var(--muted); padding: 7px 12px; border-radius: 8px; font-weight: 600; font-size: 14px }
+nav.tabs a[aria-current="page"] { background: var(--ink); color: var(--bg) }
+nav.tabs a .n { font-family: var(--mono); font-size: 12px; opacity: .75; margin-left: 4px }
+main { padding-block: 24px 64px }
+.view > .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 16px }
+.view h1 { font-size: 26px }
+.sub { color: var(--muted); margin: 4px 0 0; max-width: 65ch }
+.note { background: var(--sunk); border-radius: var(--r); padding: 10px 14px; color: var(--muted); font-size: 14px; margin-bottom: 16px }
+.note.warn { color: var(--ink); border-left: 4px solid var(--hat) }
+/* form */
+.cols { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 20px; align-items: start }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px }
+form .f { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; min-width: 0 }
+label, .lab { font-weight: 600; font-size: 14px }
+.opt { font-weight: 400; color: var(--muted); font-size: 13px }
+input[type=text], input[type=number], input[type=url], textarea, select { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; width: 100%; min-width: 0 }
+textarea { resize: vertical; min-height: 120px }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap }
+.row input[type=number] { width: 84px }
+.chips { display: flex; gap: 8px; flex-wrap: wrap }
+.chip { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 4px 12px 4px 5px; cursor: pointer; font-size: 14px }
+.chip .dot { width: 22px; height: 22px; border-radius: 50%; background: var(--sunk); background-size: cover; background-position: center top; flex: none }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink) }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 14px; font-weight: 600; cursor: pointer }
+.btn.primary { background: var(--doug); border-color: var(--doug); color: var(--doug-ink) }
+.btn.danger { color: var(--hat) }
+.btn:disabled { opacity: .5; cursor: not-allowed }
+.msg { font-size: 14px; color: var(--muted) } .msg.err { color: var(--hat) } .msg.ok { color: var(--ok) }
+ol.flow { margin: 10px 0 0; padding-left: 20px; color: var(--muted); font-size: 14px; display: grid; gap: 6px }
+ol.flow b { color: var(--ink) }
+/* shorts */
+.filters { display: flex; gap: 6px; flex-wrap: wrap }
+.filters button { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--muted) }
+.filters button[aria-pressed="true"] { background: var(--surface); color: var(--ink); border-color: var(--ink) }
+.shorts { display: grid; gap: 16px }
+.short { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); display: grid; grid-template-columns: 200px minmax(0, 1fr); overflow: hidden }
+.monitor { background: #0b0c10; aspect-ratio: 9 / 16; max-width: 100%; position: relative; display: grid; place-items: center }
+.monitor video, .monitor img { width: 100%; height: 100%; object-fit: cover; display: block }
+.monitor .slate { color: #c9ccd6; font-family: var(--mono); font-size: 12px; text-align: center; padding: 12px; line-height: 1.7 }
+.monitor .slate b { display: block; font-size: 28px; color: var(--doug) }
+.body { padding: 16px 18px; min-width: 0; display: flex; flex-direction: column; gap: 12px }
+.body h2 { font-size: 19px }
+.meta { display: flex; gap: 6px 14px; flex-wrap: wrap; color: var(--muted); font-size: 13px; align-items: center }
+.pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; letter-spacing: .02em; border: 1px solid currentColor }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor }
+.pill.queued { color: var(--muted) } .pill.working { color: var(--info) } .pill.ready { color: var(--ok) } .pill.revision { color: var(--hat) }
+.desc { color: var(--muted); font-size: 14px; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere }
+.desc.clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden }
+.strip { display: grid; gap: 6px }
+.bar { height: 8px; background: var(--sunk); border-radius: 4px; overflow: hidden }
+.bar i { display: block; height: 100%; background: var(--doug); border-radius: 4px; transition: width .4s }
+.stages { display: flex; gap: 4px; flex-wrap: wrap; font-size: 11px; font-family: var(--mono); color: var(--muted) }
+.stages span { padding: 1px 6px; border-radius: 4px; background: var(--sunk) }
+.stages span.done { color: var(--ok) } .stages span.now { background: var(--ink); color: var(--bg) }
+.eta { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums }
+.vers { display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
+.vers button { font-family: var(--mono); font-size: 12px; border: 1px solid var(--line); background: var(--bg); border-radius: 6px; padding: 2px 8px; cursor: pointer }
+.vers button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink) }
+.revs { display: grid; gap: 6px; font-size: 13px }
+.rev { border-left: 3px solid var(--line); padding-left: 10px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere }
+.rev.open { border-color: var(--hat); color: var(--ink) }
+details.revise summary { cursor: pointer; font-weight: 600; font-size: 14px }
+details.revise textarea { min-height: 90px; margin: 8px 0 }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: auto }
+/* library */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; display: flex; flex-direction: column }
+.card .pic { aspect-ratio: 4 / 3; background: var(--sunk) center / cover no-repeat; display: grid; place-items: center; color: var(--muted); font-family: var(--mono); font-size: 12px }
+.card.char .pic { aspect-ratio: 1; background-position: center top }
+.card .in { padding: 12px 14px; display: grid; gap: 4px }
+.card h3 { font-size: 16px }
+.card p { margin: 0; color: var(--muted); font-size: 13px }
+.tag { font-family: var(--mono); font-size: 11px; color: var(--muted) }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; border: 1px solid var(--line) }
+.empty { border: 1px dashed var(--line); border-radius: var(--r); padding: 28px; text-align: center; color: var(--muted) }
+.addrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto; gap: 8px; margin-top: 18px }
+@media (max-width: 760px) {
+  .cols { grid-template-columns: minmax(0, 1fr) }
+  .short { grid-template-columns: minmax(0, 1fr) }
+  .monitor { width: 100%; max-height: 420px; aspect-ratio: auto; height: 380px }
+  .monitor video, .monitor img { object-fit: contain }
+  .addrow { grid-template-columns: minmax(0, 1fr) }
+  nav.tabs { margin-left: 0 }
+}
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none } }
+</style>
+
+<header class="top"><div class="wrap">
+  <div class="brand"><span class="mark" aria-hidden="true"></span>Deadpan Studio</div>
+  <nav class="tabs" aria-label="Views">
+    <a href="#new" data-view="new">New short</a>
+    <a href="#shorts" data-view="shorts">Shorts<span class="n" id="n-shorts"></span></a>
+    <a href="#characters" data-view="characters">Characters<span class="n" id="n-chars"></span></a>
+    <a href="#scenes" data-view="scenes">Scenes<span class="n" id="n-scenes"></span></a>
+  </nav>
+</div></header>
+
+<main class="wrap">
+  <div id="conn" class="note warn" hidden></div>
+
+  <section class="view" id="view-new">
+    <div class="head"><div><h1>New short</h1><p class="sub">Describe the bit. Claude writes the timing, builds any missing character or scene, animates, voices, renders and checks it.</p></div></div>
+    <div class="cols">
+      <form class="panel" id="f-new" novalidate>
+        <div class="f"><label for="in-title">Title</label>
+          <input type="text" id="in-title" maxlength="120" placeholder="When the barista still gets your name wrong" required></div>
+        <div class="f"><label for="in-desc">Description / act</label>
+          <textarea id="in-desc" maxlength="6000" placeholder="What happens, beat by beat. Dialogue lines if any. Where the joke lands." required></textarea></div>
+        <div class="f"><span class="lab">Duration <span class="opt">seconds, a range is fine</span></span>
+          <div class="row"><input type="number" id="in-dmin" min="5" max="60" value="15" aria-label="Minimum seconds"><span>to</span><input type="number" id="in-dmax" min="5" max="60" value="20" aria-label="Maximum seconds"><span class="opt">s</span></div></div>
+        <div class="f"><span class="lab">Characters <span class="opt">optional. None picked: Doug leads, and anyone the story needs is created</span></span>
+          <div class="chips" id="pick-chars"><span class="msg">Loading the character library…</span></div>
+          <input type="text" id="in-newchars" maxlength="200" placeholder="New characters to create, e.g. a grumpy bus driver"></div>
+        <div class="f"><label for="in-scene">Scene <span class="opt">optional</span></label>
+          <select id="in-scene"><option value="">Let Claude pick or build one</option></select>
+          <input type="text" id="in-newscene" maxlength="200" placeholder="Or describe a new place, e.g. laundromat at night"></div>
+        <div class="f"><span class="lab">Reference video <span class="opt">optional</span></span>
+          <input type="file" id="in-ref" accept="video/mp4,video/webm" aria-label="Reference video file">
+          <span class="opt" id="ref-hint">MP4 or WebM up to 20 MB.</span></div>
+        <div class="row"><button class="btn primary" type="submit" id="btn-submit">Add to queue</button><span class="msg" id="msg-new" role="status"></span></div>
+      </form>
+      <aside class="panel">
+        <h3>How a short gets made</h3>
+        <ol class="flow">
+          <li><b>Queue it here.</b> It appears under Shorts as Queued.</li>
+          <li><b>Tell Claude “run the queue”</b> in the chat where the studio lives. Claude is the engine, so nothing renders until then.</li>
+          <li><b>Watch it move.</b> Stage, progress and time left update on the card while Claude works. A 20-second short takes roughly 2 to 3 hours, mostly rendering.</li>
+          <li><b>Review and revise.</b> Play the video, download it, or write what to change. Each revision becomes a new version.</li>
+        </ol>
+      </aside>
+    </div>
+  </section>
+
+  <section class="view" id="view-shorts" hidden>
+    <div class="head"><div><h1>Shorts</h1><p class="sub" id="shorts-sum">Loading…</p></div>
+      <div class="filters" id="filters" role="group" aria-label="Filter shorts">
+        <button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="active" aria-pressed="false">In production</button><button type="button" data-f="ready" aria-pressed="false">Ready</button>
+      </div></div>
+    <div class="shorts" id="list-shorts"><div class="empty">Shorts you queue will appear here with their progress and finished videos.</div></div>
+  </section>
+
+  <section class="view" id="view-characters" hidden>
+    <div class="head"><div><h1>Characters</h1><p class="sub">The cast Claude can reuse. A character requested here, or invented for a short, is added once it has been built.</p></div></div>
+    <div class="grid" id="list-chars"><div class="empty">The cast will appear here.</div></div>
+    <form class="addrow" id="f-char" novalidate>
+      <input type="text" id="c-name" maxlength="60" placeholder="Name" aria-label="Character name" required>
+      <input type="text" id="c-desc" maxlength="300" placeholder="Look and personality, e.g. tall teal landlord, always tired" aria-label="Character description" required>
+      <button class="btn" type="submit">Request character</button>
+    </form><p class="msg" id="msg-char" role="status"></p>
+  </section>
+
+  <section class="view" id="view-scenes" hidden>
+    <div class="head"><div><h1>Scenes</h1><p class="sub">Sets that already exist and can be reused in any short.</p></div></div>
+    <div class="grid" id="list-scenes"><div class="empty">The sets will appear here.</div></div>
+    <form class="addrow" id="f-scene" novalidate>
+      <input type="text" id="s-name" maxlength="60" placeholder="Name" aria-label="Scene name" required>
+      <input type="text" id="s-desc" maxlength="300" placeholder="What it looks like, e.g. cramped elevator, flickering light" aria-label="Scene description" required>
+      <button class="btn" type="submit">Request scene</button>
+    </form><p class="msg" id="msg-scene" role="status"></p>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var STAGES = ["Queued", "Script & timing", "Voices", "Set & cast", "Animation", "Test frames", "Rendering", "Sound & edit", "Final check", "Ready"];
+  var S = { shorts: [], chars: [], scenes: [], filter: "all", picked: {}, ver: {}, canWrite: true, loaded: { shorts: false, chars: false, scenes: false } };
+  var db = null, assets = null, downloads = null;
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, attrs, kids) {
+    var e = document.createElement(tag); attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === "text") e.textContent = attrs[k]; else if (k === "class") e.className = attrs[k];
+      else if (k.slice(0, 2) === "on") e.addEventListener(k.slice(2), attrs[k]); else if (attrs[k] !== false && attrs[k] != null) e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (c) { if (c) e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return e;
+  }
+  var okId = function (id) { return typeof id === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(id); };
+  var blob = function (id) { return okId(id) ? "/_blob/" + id : ""; };
+  function fmtMin(m) { m = Math.max(0, Math.round(m)); if (m < 1) return "under a minute"; var h = Math.floor(m / 60), r = m % 60; return ((h ? h + " h " : "") + (r || !h ? r + " min" : "")).trim(); }
+  function ago(ts) { if (!ts) return ""; var m = (Date.now() - ts) / 60000; if (m < 1) return "just now"; if (m < 60) return Math.round(m) + " min ago"; if (m < 1440) return Math.round(m / 60) + " h ago"; return new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" }); }
+  function say(id, text, kind) { var n = $(id); n.textContent = text; n.className = "msg" + (kind ? " " + kind : ""); }
+  function dbErr(e) { return e && e.code === "invalid_argument" ? "You have view-only access, so this can't be saved." : e && e.code === "quota_exceeded" ? "Storage is full. Remove old shorts first." : "Couldn't save. Check your connection and try again."; }
+
+  /* ---------- routing ---------- */
+  var VIEWS = ["new", "shorts", "characters", "scenes"];
+  function route() {
+    var v = (location.hash || "").slice(1); if (VIEWS.indexOf(v) < 0) v = S.loaded.shorts && S.shorts.length ? "shorts" : "new";
+    VIEWS.forEach(function (n) { $("view-" + n).hidden = n !== v; });
+    document.querySelectorAll("nav.tabs a").forEach(function (a) { if (a.dataset.view === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+  }
+  window.addEventListener("hashchange", route);
+
+  /* ---------- shorts ---------- */
+  function statusOf(s) {
+    if (s.status === "ready") return ["ready", "Ready"]; if (s.status === "revision") return ["revision", "Revision queued"];
+    if (s.status === "working") return ["working", s.stage || "In production"]; return ["queued", "Queued"];
+  }
+  function renderShorts() {
+    var box = $("list-shorts"); box.textContent = "";
+    var all = S.shorts.slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+    var active = all.filter(function (s) { return s.status !== "ready"; }), ready = all.filter(function (s) { return s.status === "ready"; });
+    var vids = all.reduce(function (n, s) { return n + (s.versions || []).length; }, 0);
+    $("shorts-sum").textContent = !S.loaded.shorts ? "Loading…" : all.length ? active.length + " in production or queued, " + ready.length + " ready, " + vids + " videos generated." : "Nothing queued yet.";
+    $("n-shorts").textContent = all.length || "";
+    var list = S.filter === "active" ? active : S.filter === "ready" ? ready : all;
+    if (!list.length) { box.appendChild(el("div", { class: "empty", text: all.length ? "No shorts match this filter." : "Shorts you queue will appear here with their progress and finished videos." })); return; }
+    list.forEach(function (s) { box.appendChild(shortCard(s)); });
+  }
+  function shortCard(s) {
+    var st = statusOf(s), vers = s.versions || [], vi = S.ver[s.id]; if (vi == null || vi >= vers.length) vi = vers.length - 1;
+    var cur = vers[vi], mon = el("div", { class: "monitor" });
+    if (cur && blob(cur.video)) {
+      mon.appendChild(el("video", { controls: "", preload: "none", playsinline: "", poster: blob(cur.poster) || null, src: blob(cur.video), "aria-label": s.title + " version " + cur.v }));
+    } else {
+      mon.appendChild(el("div", { class: "slate" }, [el("b", { text: (s.progress || 0) + "%" }), st[1]]));
+    }
+    var names = (s.characters || []).map(function (id) { var c = S.chars.filter(function (c) { return c.id === id; })[0]; return c ? c.name : id; });
+    if (s.newCharacters) names.push("new: " + s.newCharacters);
+    var scene = S.scenes.filter(function (x) { return x.id === s.scene; })[0];
+    var body = el("div", { class: "body" }, [
+      el("div", {}, [el("h2", { text: s.title || "Untitled" }),
+        el("div", { class: "meta" }, [el("span", { class: "pill " + st[0], text: st[1] }),
+          el("span", { text: (s.durationMin === s.durationMax ? s.durationMin : s.durationMin + "–" + s.durationMax) + " s target" }),
+          el("span", { text: "Cast: " + (names.length ? names.join(", ") : "Doug + whoever the story needs") }),
+          el("span", { text: "Scene: " + (scene ? scene.name : s.newScene || "Claude's pick") }),
+          s.refAsset || s.refNote ? el("span", { text: "Has reference video" }) : null])]),
+      descNode(s)
+    ]);
+    if (s.status !== "ready") {
+      var idx = Math.max(0, Math.min(STAGES.length - 1, s.stageIndex || 0));
+      var stg = el("div", { class: "stages" }, STAGES.slice(1).map(function (n, i) { return el("span", { class: i + 1 < idx ? "done" : i + 1 === idx && s.status === "working" ? "now" : "", text: n }); }));
+      var eta = s.status === "working" && s.etaMinutes != null ? "About " + fmtMin(s.etaMinutes - (Date.now() - (s.updatedAt || Date.now())) / 60000) + " left" : s.status === "working" ? "Working" : "Waiting for Claude. Say “run the queue” in the studio chat.";
+      body.appendChild(el("div", { class: "strip" }, [el("div", { class: "bar", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": s.progress || 0 }, [el("i", { style: "width:" + (s.progress || 0) + "%" })]),
+        el("div", { class: "meta" }, [el("span", { class: "eta", text: eta }), s.updatedAt ? el("span", { text: "Updated " + ago(s.updatedAt) }) : null, s.note ? el("span", { text: s.note }) : null]), stg]));
+    }
+    if (vers.length) {
+      var vrow = el("div", { class: "vers" }, [el("span", { class: "tag", text: "VERSIONS" })]);
+      vers.forEach(function (v, i) { vrow.appendChild(el("button", { type: "button", "aria-pressed": String(i === vi), text: "v" + v.v, title: v.notes || "", onclick: function () { S.ver[s.id] = i; renderShorts(); } })); });
+      if (cur) vrow.appendChild(el("span", { class: "meta", text: (cur.seconds ? cur.seconds + " s · " : "") + (cur.notes || "") }));
+      body.appendChild(vrow);
+    }
+    var revs = s.revisions || [];
+    if (revs.length) body.appendChild(el("div", { class: "revs" }, revs.map(function (r) { return el("div", { class: "rev" + (r.done ? "" : " open"), text: (r.done ? "Done in v" + (r.doneIn || "?") + ": " : "Requested: ") + r.text }); })));
+    var act = el("div", { class: "actions" });
+    if (cur && downloads) act.appendChild(el("button", { class: "btn", type: "button", text: "Download v" + cur.v, onclick: function (ev) { download(ev.currentTarget, s, cur); } }));
+    if (vers.length && S.canWrite && s.status !== "working") {
+      var ta = el("textarea", { id: "rev-" + s.id, maxlength: 4000, placeholder: "What should change? e.g. hold the stare half a second longer; make the cup bigger", "aria-label": "Revision notes for " + s.title });
+      var m = el("span", { class: "msg", role: "status" });
+      var d = el("details", { class: "revise" }, [el("summary", { text: "Request a revision" }), ta, el("div", { class: "row" }, [el("button", { class: "btn primary", type: "button", text: "Queue revision", onclick: function (ev) { revise(ev.currentTarget, s, ta, m); } }), m])]);
+      body.appendChild(d);
+    }
+    if (S.canWrite && s.status === "queued" && !vers.length) act.appendChild(confirmBtn("Remove from queue", function () { return db.doc("shorts/" + s.id).delete(); }));
+    if (act.childNodes.length) body.appendChild(act);
+    return el("article", { class: "short" }, [mon, body]);
+  }
+  function descNode(s) {
+    var p = el("p", { class: "desc clamp", text: s.description || "" });
+    if ((s.description || "").length < 220) return p;
+    var b = el("button", { class: "btn", type: "button", text: "Show full brief", style: "align-self:flex-start;padding:3px 10px;font-size:13px", onclick: function () { var c = p.classList.toggle("clamp"); b.textContent = c ? "Show full brief" : "Show less"; } });
+    return el("div", { style: "display:grid;gap:6px" }, [p, b]);
+  }
+  function confirmBtn(label, run) {
+    var armed = false, b = el("button", { class: "btn danger", type: "button", text: label });
+    b.addEventListener("click", function () {
+      if (!armed) { armed = true; b.textContent = "Click again to confirm"; setTimeout(function () { armed = false; b.textContent = label; }, 4000); return; }
+      b.disabled = true; run().catch(function (e) { b.disabled = false; b.textContent = dbErr(e); });
+    });
+    return b;
+  }
+  function revise(btn, s, ta, m) {
+    var text = ta.value.trim(); if (text.length < 5) { m.textContent = "Describe what should change."; m.className = "msg err"; return; }
+    btn.disabled = true;
+    var revs = (s.revisions || []).map(function (r) { return Object.assign({}, r); }); revs.push({ text: text, at: Date.now(), done: false });
+    db.doc("shorts/" + s.id).update({ revisions: revs, status: "revision", stage: "Queued", stageIndex: 0, progress: 0, etaMinutes: null, updatedAt: Date.now() })
+      .then(function () { ta.value = ""; }, function (e) { btn.disabled = false; m.textContent = dbErr(e); m.className = "msg err"; });
+  }
+  function download(btn, s, v) {
+    var old = btn.textContent; btn.disabled = true; btn.textContent = "Preparing…";
+    fetch(blob(v.video)).then(function (r) { if (!r.ok) throw new Error("gone"); return r.blob(); })
+      .then(function (b) { var name = (s.title || "short").replace(/[^A-Za-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 60) + "_v" + v.v + ".mp4"; return downloads.save({ filename: name, data: b }); })
+      .then(function () { btn.textContent = old; btn.disabled = false; }, function (e) { btn.disabled = false; btn.textContent = e && e.code === "declined" ? old : "Download unavailable here"; });
+  }
+
+  /* ---------- libraries ---------- */
+  function renderChars() {
+    $("n-chars").textContent = S.chars.length || "";
+    var box = $("list-chars"); box.textContent = "";
+    if (!S.chars.length) box.appendChild(el("div", { class: "empty", text: S.loaded.chars ? "No characters yet. Request the first one below." : "The cast will appear here." }));
+    S.chars.forEach(function (c) {
+      var pic = el("div", { class: "pic", text: blob(c.image) ? "" : c.status === "requested" ? "to be built" : "no portrait" }); if (blob(c.image)) pic.style.backgroundImage = "url(" + blob(c.image) + ")";
+      box.appendChild(el("article", { class: "card char" }, [pic, el("div", { class: "in" }, [
+        el("h3", {}, [c.color && /^#[0-9a-fA-F]{6}$/.test(c.color) ? el("span", { class: "swatch", style: "background:" + c.color }) : null, c.name || c.id]),
+        el("p", { text: c.description || "" }), el("span", { class: "tag", text: c.status === "requested" ? "REQUESTED" : (c.role || "CAST").toUpperCase() + (c.voice ? " · VOICE " + c.voice : "") })])]));
+    });
+    var pick = $("pick-chars"); pick.textContent = "";
+    var ready = S.chars.filter(function (c) { return c.status !== "requested" && c.pickable !== false; });
+    if (!ready.length) pick.appendChild(el("span", { class: "msg", text: S.loaded.chars ? "No characters in the library yet. Doug will be created." : "Loading the character library…" }));
+    ready.forEach(function (c) {
+      var dot = el("span", { class: "dot" }); if (blob(c.image)) dot.style.backgroundImage = "url(" + blob(c.image) + ")";
+      pick.appendChild(el("button", { type: "button", class: "chip", "aria-pressed": String(!!S.picked[c.id]), onclick: function (ev) { S.picked[c.id] = !S.picked[c.id]; ev.currentTarget.setAttribute("aria-pressed", String(S.picked[c.id])); } }, [dot, c.name]));
+    });
+  }
+  function renderScenes() {
+    $("n-scenes").textContent = S.scenes.length || "";
+    var box = $("list-scenes"); box.textContent = "";
+    if (!S.scenes.length) box.appendChild(el("div", { class: "empty", text: S.loaded.scenes ? "No scenes yet. Request the first one below." : "The sets will appear here." }));
+    S.scenes.forEach(function (c) {
+      var pic = el("div", { class: "pic", text: blob(c.image) ? "" : c.status === "requested" ? "to be built" : "no picture" }); if (blob(c.image)) pic.style.backgroundImage = "url(" + blob(c.image) + ")";
+      box.appendChild(el("article", { class: "card" }, [pic, el("div", { class: "in" }, [el("h3", { text: c.name || c.id }), el("p", { text: c.description || "" }), el("span", { class: "tag", text: c.status === "requested" ? "REQUESTED" : c.usedIn ? "USED IN " + String(c.usedIn).toUpperCase() : "READY" })])]));
+    });
+    var sel = $("in-scene"), keep = sel.value; sel.textContent = ""; sel.appendChild(el("option", { value: "", text: "Let Claude pick or build one" }));
+    S.scenes.filter(function (c) { return c.status !== "requested"; }).forEach(function (c) { sel.appendChild(el("option", { value: c.id, text: c.name })); }); sel.value = keep;
+  }
+
+  /* ---------- writes ---------- */
+  var slug = function (t) { return t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "item"; };
+  $("f-new").addEventListener("submit", function (ev) {
+    ev.preventDefault(); if (!db) { say("msg-new", "The studio database isn't connected in this view.", "err"); return; }
+    var title = $("in-title").value.trim(), desc = $("in-desc").value.trim(), a = +$("in-dmin").value, b = +$("in-dmax").value;
+    if (title.length < 3) return say("msg-new", "Give the short a title.", "err");
+    if (desc.length < 20) return say("msg-new", "Describe what happens in a sentence or two at least.", "err");
+    if (!(a >= 5 && b <= 60 && a <= b)) return say("msg-new", "Duration must be between 5 and 60 seconds, shortest first.", "err");
+    var file = $("in-ref").files[0];
+    if (file && file.size > 20 * 1024 * 1024) return say("msg-new", "That reference video is over 20 MB. Trim or compress it first.", "err");
+    if (file && !/^video\/(mp4|webm)$/.test(file.type)) return say("msg-new", "The reference must be an MP4 or WebM video.", "err");
+    var btn = $("btn-submit"); btn.disabled = true; say("msg-new", file ? "Uploading the reference video…" : "Saving…");
+    var up = file && assets ? assets.upload(file).then(function (r) { return r.id; }) : Promise.resolve(null);
+    up.then(function (refId) {
+      var id = slug(title) + "-" + Date.now().toString(36), now = Date.now();
+      return db.doc("shorts/" + id).set({ title: title, description: desc, durationMin: a, durationMax: b,
+        characters: Object.keys(S.picked).filter(function (k) { return S.picked[k]; }), newCharacters: $("in-newchars").value.trim(),
+        scene: $("in-scene").value, newScene: $("in-newscene").value.trim(), refAsset: refId, refNote: file && !refId ? "Reference could not be uploaded from this view: " + file.name : "",
+        status: "queued", stage: "Queued", stageIndex: 0, progress: 0, etaMinutes: null, versions: [], revisions: [], createdAt: now, updatedAt: now });
+    }).then(function () {
+      $("f-new").reset(); S.picked = {}; renderChars(); btn.disabled = false; say("msg-new", "Queued. Tell Claude “run the queue”.", "ok"); location.hash = "#shorts";
+    }, function (e) { btn.disabled = false; say("msg-new", e && e.code === "too_large" ? "That reference video is too large." : e && e.code === "unsupported_type" ? "That video format isn't accepted. Use MP4 or WebM." : dbErr(e), "err"); });
+  });
+  function addLib(form, coll, nameId, descId, msgId) {
+    $(form).addEventListener("submit", function (ev) {
+      ev.preventDefault(); if (!db) return say(msgId, "The studio database isn't connected in this view.", "err");
+      var n = $(nameId).value.trim(), d = $(descId).value.trim(); if (n.length < 2 || d.length < 5) return say(msgId, "Add a name and a short description.", "err");
+      db.doc(coll + "/" + slug(n) + "-" + Date.now().toString(36)).set({ name: n, description: d, status: "requested", createdAt: Date.now() })
+        .then(function () { $(form).reset(); say(msgId, "Requested. Claude builds it the next time the queue runs.", "ok"); }, function (e) { say(msgId, dbErr(e), "err"); });
+    });
+  }
+  addLib("f-char", "characters", "c-name", "c-desc", "msg-char"); addLib("f-scene", "scenes", "s-name", "s-desc", "msg-scene");
+  $("filters").addEventListener("click", function (ev) { var b = ev.target.closest("button"); if (!b) return; S.filter = b.dataset.f; $("filters").querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); }); renderShorts(); });
+
+  /* ---------- boot ---------- */
+  function start() {
+    route(); renderShorts(); renderChars(); renderScenes();
+    var use = window.claude && window.claude.use ? window.claude.use.bind(window.claude) : function () { return Promise.resolve(null); };
+    var timer = setTimeout(function () { var c = $("conn"); c.hidden = false; c.textContent = "The studio data can't be reached yet. If this stays, check your connection or sign in."; }, 10000);
+    var pending = 3, landed = function (k) { if (!S.loaded[k]) { S.loaded[k] = true; if (--pending <= 0) { clearTimeout(timer); $("conn").hidden = true; } if (k === "shorts" && !location.hash) route(); } };
+    Promise.all([use("db"), use("assets"), use("downloads"), use("user")]).then(function (r) {
+      db = r[0]; assets = r[1]; downloads = r[2]; var user = r[3];
+      if (!assets) { $("in-ref").disabled = true; $("ref-hint").textContent = "Uploading a reference needs edit access to this studio. Describe the reference in the brief instead."; }
+      if (user && user.can) user.can("data.write").then(function (ok) { if (ok === false) { S.canWrite = false; renderShorts(); } }, function () {});
+      if (!db) { clearTimeout(timer); var c = $("conn"); c.hidden = false; c.textContent = "Sign in to Claude to see and queue shorts."; S.loaded = { shorts: true, chars: true, scenes: true }; renderShorts(); renderChars(); renderScenes(); return; }
+      var dead = function (e) { clearTimeout(timer); var c = $("conn"); c.hidden = false; c.textContent = "Lost the connection to the studio data. Reload to try again."; };
+      var rows = function (snap) { return snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); };
+      db.collection("shorts").onSnapshot(function (s) { S.shorts = rows(s); if (!s.metadata.fromCache) landed("shorts"); renderShorts(); }, dead);
+      db.collection("characters").onSnapshot(function (s) { S.chars = rows(s).sort(function (a, b) { return (a.order || 99) - (b.order || 99); }); if (!s.metadata.fromCache) landed("chars"); renderChars(); renderShorts(); }, dead);
+      db.collection("scenes").onSnapshot(function (s) { S.scenes = rows(s).sort(function (a, b) { return (a.order || 99) - (b.order || 99); }); if (!s.metadata.fromCache) landed("scenes"); renderScenes(); renderShorts(); }, dead);
+    });
+    setInterval(function () { var playing = Array.prototype.some.call(document.querySelectorAll("video"), function (v) { return !v.paused; }), typing = document.activeElement && /TEXTAREA|INPUT/.test(document.activeElement.tagName);
+      if (!playing && !typing && S.shorts.some(function (s) { return s.status === "working"; })) renderShorts(); }, 60000);
+  }
+  start();
+})();
+</script>
