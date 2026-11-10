@@ -18,17 +18,18 @@ FPS = 30
 
 # ============================================================ BEATS (frames, 30 fps)
 B = dict(
-    A=(1, 50),          # medium: scrolling on the couch
-    B=(51, 110),        # POV close-up of the phone: feed -> accidental tap -> front camera
+    A=(1, 40),          # medium: scrolling on the couch
+    B=(41, 110),        # POV close-up of the phone: feed -> accidental tap on the camera icon -> front camera (he keeps swiping, unaware)
     C=(111, 180),       # reaction close-up: eyes slowly widen, drift off, one blink, back to the screen
     D=(181, 300),       # over the shoulder: raise = normal, lower = horrifying, twice
     E=(301, 335),       # close-up: silent disappointment
     F=(336, 465),       # wide: screen off, phone face down, stillness, blanket over the head, hold
 )
 N = 474                 # 466-474 black
-SWIPES = [10, 24, 38]
-TAP_CAM = 60            # accidental tap
-CAM_ON = 62             # camera app opens (activation sound)
+SWIPES = [8, 22, 50]
+TAP_CAM = 66            # accidental tap: his thumb comes down for the next swipe and lands on the camera icon
+CAM_ON = 69             # camera app opens (activation sound)
+SWIPE_CAM = 80          # one more lazy swipe on the camera view: nothing scrolls (he hasn't noticed yet)
 TAP_OFF = 342           # screen off
 SCREEN_OFF = 343
 PUT_DOWN = 370          # phone lands face down on the cushion
@@ -93,12 +94,16 @@ exec(open(os.path.join(HERE, '..', 'ep12', 'rig.py')).read())
 doug['mouth'].location.y = -0.326
 doug_r = Rig(doug, 'doug', M['doug'], M['doug'], lift=0.17)
 SIT_LEGS = {'N': ((-0.17, -0.42, 0.0), (0, -1, 0.9)), 'P': ((0.17, -0.42, 0.0), (0, -1, 0.9))}
+# v2: real sitting legs. Thigh lies on the seat cushion (above its top at z=SEAT), knee just past the cushion's front edge,
+# shin hangs straight down in front of the couch base, foot flat on the rug. (root-local coords; root is at ROOT)
+KNEE_L = {'N': V(-0.17, -0.40, SEAT + 0.07), 'P': V(0.17, -0.40, SEAT + 0.07)}
+FOOT_L = {'N': V(-0.18, -0.44, 0.02), 'P': V(0.18, -0.44, 0.02)}
 ROOT = V(0, 0.05, 0)
 doug_r.place(1, (ROOT.x, ROOT.y), 0)
 UP0 = V(0, 0, doug_r.base)
 def to_local(w, up=V(0, 0, 0)): return V(*w) - ROOT - UP0 - up       # upper body never rotates in this short
 def to_world(l, up=V(0, 0, 0)): return V(*l) + ROOT + UP0 + up
-LAP = {'N': V(-0.19, -0.36, 0.13), 'P': V(0.19, -0.36, 0.13)}
+LAP = {'N': V(-0.19, -0.33, 0.165), 'P': V(0.19, -0.33, 0.165)}      # hands resting on the thighs
 scene.frame_set(1)
 EYE_C = sum((e.matrix_world.translation for e in doug['eyes']), Vector()) / 2
 
@@ -159,11 +164,12 @@ for f in range(1, N + 1):
     gl.color = col; gl.energy = en; gl.keyframe_insert('color', frame=f); gl.keyframe_insert('energy', frame=f)
 
 # ============================================================ BODY + HANDS
-def hold_P(f): return PM(f) @ V(0.03, 0.02, -0.15)           # right fist round the bottom edge
-def cradle_N(f): return PM(f) @ V(-0.055, 0.025, -0.155)      # left hand also under the bottom edge
-def tap_N(f, depth): return PM(f) @ V(-0.045, -0.06 - 0.05 * depth, -0.1)
+def hold_P(f): return PM(f) @ V(0.03, 0.02, -0.182)          # right fist under the bottom edge (v2: lower, so the screen's bottom bar shows)
+def cradle_N(f): return PM(f) @ V(-0.05, 0.025, -0.186)       # left hand also under the bottom edge
+ICON = V(-0.043, 0, -0.101)                                   # camera shortcut on the screen (screen.py: x=44, y=H-38)
+def tap_N(f, depth): return PM(f) @ (ICON + V(-0.004, -0.062 - 0.05 * depth, -0.012))
 def swipe_N(f, f0):
-    t = (f - f0) / 6.0; return PM(f) @ V(-0.045, -0.06, -0.11 + 0.05 * smooth(t))
+    t = (f - f0) / 6.0; return PM(f) @ V(-0.03, -0.062, -0.05 + 0.06 * smooth(t))
 def mix(a, b, t): t = smooth(t); return a.lerp(b, t)
 GRAB_W = {'N': V(-0.30, 0.43, 1.0), 'P': V(0.30, 0.43, 1.0)}
 def blanket_hand(side, f):
@@ -183,12 +189,13 @@ def hand_world(side, f):
         return blanket_hand('P', f)
     # left hand
     if f < 181:
-        for s in SWIPES:
+        for s in SWIPES + [SWIPE_CAM]:
             if s - 4 <= f < s: return mix(cradle_N(f), tap_N(f, 0.5), (f - s + 4) / 4)
             if s <= f < s + 6: return swipe_N(f, s)
             if s + 6 <= f < s + 11: return mix(swipe_N(f, s + 6 - 6), cradle_N(f), (f - s - 6) / 5)
-        if TAP_CAM - 4 <= f <= TAP_CAM: return mix(cradle_N(f), tap_N(f, 0.0), (f - TAP_CAM + 4) / 4)
-        if TAP_CAM < f <= TAP_CAM + 5: return mix(tap_N(f, 0.0), cradle_N(f), (f - TAP_CAM) / 5)
+        if TAP_CAM - 6 <= f <= TAP_CAM: return mix(cradle_N(f), tap_N(f, 0.0), (f - TAP_CAM + 6) / 6)
+        if TAP_CAM < f <= TAP_CAM + 2: return tap_N(f, 0.0)
+        if TAP_CAM + 2 < f <= TAP_CAM + 8: return mix(tap_N(f, 0.0), cradle_N(f), (f - TAP_CAM - 2) / 6)
         return cradle_N(f)
     if f < 190: return mix(cradle_N(f), to_world(LAP['N']), (f - 181) / 9)
     if f < TAP_OFF - 5: return to_world(LAP['N'])
@@ -206,12 +213,26 @@ for f in range(1, N + 1):
     up = up_of(f)
     arms = {s: (tuple(to_local(hand_world(s, f), up)), bend_of(s, f)) for s in ('N', 'P')}
     doug_r.pose(f, up=tuple(up), rot=(0, 0, 0), arms=arms, legs=SIT_LEGS)
+    for s_ in ('N', 'P'):      # v2: override the rig's straight leg with the seated hip -> knee -> foot
+        hip = V(0, 0, doug_r.base) + up + doug_r.hip_off[s_]
+        doug_r.key_points(doug_r.leg[s_], f, (hip, KNEE_L[s_], FOOT_L[s_]))
+        doug_r.foot[s_].location = FOOT_L[s_] + V(0, -0.035, 0.03); doug_r.foot[s_].keyframe_insert('location', frame=f)
 
 # ============================================================ EYES + LIDS
 D_LIDS = [o for o in bpy.data.objects if o.name.startswith('doug_lid')]
 AWAY = V(0.0, -2.0, 1.75)
+SACC = [(1, (0.0, 0.03)), (14, (-0.02, -0.01)), (27, (0.015, 0.035)), (44, (-0.01, 0.0)), (56, (0.02, 0.03)), (72, (-0.015, -0.03)),
+        (90, (0.0, 0.01)), (122, (0.015, 0.03)), (131, (-0.015, 0.025)), (140, (0.0, 0.0)), (176, (0.0, 0.0)),
+        (305, (0.0, 0.0)), (313, (0.012, 0.0)), (322, (-0.008, -0.01)), (N, (-0.008, -0.01))]
+def sacc(f):      # small eye movements over the phone (reading the feed, then checking the image), 3-frame moves
+    prev = SACC[0][1]
+    for (fa, a), (fb, b) in zip(SACC, SACC[1:]):
+        if fa <= f < fb:
+            t = smooth((f - fa) / 3.0); return V(prev[0] + (a[0] - prev[0]) * t, 0, prev[1] + (a[1] - prev[1]) * t)
+        prev = a
+    return V(0, 0, 0)
 def look_target(f):
-    sc = PM(f) @ V(0, -0.007, 0)
+    sc = PM(f) @ (V(0, -0.007, 0) + sacc(f))
     if 150 <= f < 170:
         return sc.lerp(AWAY, smooth((f - 150) / 6)) if f < 160 else AWAY.lerp(sc, smooth((f - 165) / 5))
     if f >= 374: return sc.lerp(V(0.0, -2.0, 1.45), smooth((f - 374) / 6))
@@ -221,7 +242,7 @@ def blink_amt(f):
     for b_, dur in BLINKS:
         if abs(f - b_) <= dur: return 1 - abs(f - b_) / (dur + 1)
     return 0.0
-LID_KEYS = [(1, 23), (118, 23), (148, -28), (190, -28), (206, -28), (216, 8), (238, 8), (244, -12), (258, 8), (264, 6),
+LID_KEYS = [(1, 23), (114, 23), (124, 30), (132, 30), (150, -26), (190, -28), (206, -28), (216, 8), (238, 8), (244, -12), (258, 8), (264, 6),
             (280, 6), (285, -10), (300, -8), (305, -8), (322, 32), (N, 32)]
 def lid_of(f):
     for (fa, a), (fb, b) in zip(LID_KEYS, LID_KEYS[1:]):
@@ -328,10 +349,11 @@ FACE = EYE_C + V(0, 0, -0.06)
 def cam_for(f):
     """-> (location, target, lens, fstop, focus point)"""
     if f <= B['A'][1]:
-        t = (f - 1) / 50
+        t = (f - 1) / 40
         return V(0.3, -1.75, 1.42).lerp(V(0.27, -1.62, 1.4), t), V(0.03, -0.25, 1.17), 30, 4.0, FACE
     if f <= B['B'][1]:      # his point of view
-        s = SC(f); return V(0.0, -0.335, 1.43), s + V(0, 0, 0.012), 62, 5.6, s
+        t = smooth((f - 41) / 69)      # v2: a little wider and lower in frame, so the whole screen (bottom bar too) clears the title
+        s = SC(f); return V(0.0, -0.335, 1.43), s + V(0, 0, 0.03 - 0.008 * t), 54 + 4 * t, 5.6, s
     if f <= B['C'][1]:      # reaction, from just past the phone
         t = smooth((f - 111) / 69)
         return V(0.24, -1.15, 1.2).lerp(V(0.2, -1.05, 1.22), t), FACE + V(0, 0, 0.1), 38, 4.0, FACE
@@ -352,7 +374,7 @@ def cam_setup(name):
 if SHOT == 'QA':
     print('EYE_C', tuple(round(x, 3) for x in EYE_C), 'pins', {k: len(v) for k, v in PIN.items()})
     print('eye pitch LOW', EYE_LOG[100], 'HIGH', EYE_LOG[220])
-    json.dump({'SHOTS': B, 'N': N, 'CAM_ON': CAM_ON, 'SWIPES': SWIPES, 'TAP_CAM': TAP_CAM, 'TAP_OFF': TAP_OFF, 'SCREEN_OFF': SCREEN_OFF,
+    json.dump({'SHOTS': B, 'N': N, 'CAM_ON': CAM_ON, 'SWIPES': SWIPES, 'SWIPE_CAM': SWIPE_CAM, 'TAP_CAM': TAP_CAM, 'TAP_OFF': TAP_OFF, 'SCREEN_OFF': SCREEN_OFF,
                'PUT_DOWN': PUT_DOWN, 'GRAB': GRAB, 'COVERED': COVERED, 'F_BLACK': F_BLACK,
                'RAISE': [[188, 206], [252, 262]], 'LOWER': [[226, 240], [272, 282]]},
               open(os.path.join(HERE, 'beats.json'), 'w'), indent=1)

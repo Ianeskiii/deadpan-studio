@@ -46,14 +46,16 @@ def feed_frame(f, tap=0.0):
     d.rectangle((0, H - 78, W, H), fill=(255, 255, 255)); d.line((0, H - 78, W, H - 78), fill=(220, 220, 225), width=2)
     # bottom bar: camera shortcut at the far left (the one he hits), home, search, profile
     cx, cy = 44, H - 38
-    d.rounded_rectangle((cx - 20, cy - 13, cx + 20, cy + 15), 6, outline=(20, 20, 24), width=3); d.ellipse((cx - 8, cy - 7, cx + 8, cy + 9), outline=(20, 20, 24), width=3)
-    d.rectangle((cx - 7, cy - 18, cx + 5, cy - 13), fill=(20, 20, 24))
+    # v2: the camera shortcut is a filled blue button so it reads at a glance; it lights up when his thumb lands on it
+    d.ellipse((cx - 30, cy - 30, cx + 30, cy + 30), fill=(40, 120, 255) if tap <= 0 else (20, 80, 200))
+    d.rounded_rectangle((cx - 17, cy - 10, cx + 17, cy + 14), 5, fill=(255, 255, 255)); d.ellipse((cx - 8, cy - 6, cx + 8, cy + 10), fill=(40, 120, 255))
+    d.ellipse((cx - 4, cy - 2, cx + 4, cy + 6), fill=(255, 255, 255)); d.rectangle((cx - 7, cy - 15, cx + 5, cy - 10), fill=(255, 255, 255))
     for k, x in enumerate((150, 250, 360)):
         if k == 0: d.polygon([(x - 18, cy + 14), (x - 18, cy - 4), (x, cy - 18), (x + 18, cy - 4), (x + 18, cy + 14)], outline=(20, 20, 24), width=3)
         if k == 1: d.ellipse((x - 13, cy - 15, x + 9, cy + 7), outline=(20, 20, 24), width=3); d.line((x + 6, cy + 4, x + 16, cy + 14), fill=(20, 20, 24), width=4)
         if k == 2: d.ellipse((x - 15, cy - 15, x + 15, cy + 15), fill=(255, 120, 90))
     if tap > 0:
-        r = 20 + 30 * tap; a = int(140 * (1 - tap))
+        r = 30 + 34 * tap; a = int(170 * (1 - tap))
         ov = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ImageDraw.Draw(ov).ellipse((cx - r, cy - r, cx + r, cy + r), fill=(120, 120, 130, a))
         im = Image.alpha_composite(im.convert('RGBA'), ov).convert('RGB')
     return im
@@ -112,13 +114,18 @@ def camera_frame(f, fade=1.0):
     d.arc((x - 12, cy - 12, x + 12, cy + 12), 20, 160, fill='white', width=3)                                        # flip camera (already on front)
     return im
 CAM_ON, OFF, TAP = B['CAM_ON'], B['SCREEN_OFF'], B['TAP_CAM']
+OPEN = 5          # v2: the camera app zooms open out of the icon he hit, so the switch is obvious
 for f in range(1, N + 1):
-    if f < CAM_ON: im = feed_frame(f, sm((f - TAP) / 3) if TAP <= f < CAM_ON else 0.0)
-    elif f == CAM_ON: im = camera_frame(f, 0.0)
-    elif f == CAM_ON + 1: im = camera_frame(f, 0.45)
+    if f < CAM_ON: im = feed_frame(f, sm((f - TAP) / (CAM_ON - TAP)) if TAP <= f < CAM_ON else 0.0)
+    elif f < CAM_ON + OPEN:
+        k = sm((f - CAM_ON + 1) / OPEN); bg = feed_frame(CAM_ON - 1, 1.0)
+        cf = camera_frame(f, min(1.0, 0.2 + k)); w_, h_ = max(2, int(W * k)), max(2, int(H * k))
+        x_ = int(44 * (1 - k)); y_ = int((H - 38) * (1 - k) - 0 * k)
+        bg.paste(cf.resize((w_, h_), Image.LANCZOS), (x_ - int(w_ * 0.0), y_ - int(h_ * (1 - k) * 0)))
+        im = bg
     elif f < OFF: im = camera_frame(f)
     else: im = Image.new('RGB', (W, H), (0, 0, 0))
     im.save(f'screen/sc_{f:04d}.png')
 sheet = Image.new('RGB', (W * 5 // 2, H // 2))
-for i, f in enumerate((40, 61, 100, 215, 250)): sheet.paste(Image.open(f'screen/sc_{f:04d}.png').resize((W // 2, H // 2)), (i * W // 2, 0))
+for i, f in enumerate((50, 66, 71, 100, 250)): sheet.paste(Image.open(f'screen/sc_{f:04d}.png').resize((W // 2, H // 2)), (i * W // 2, 0))
 sheet.save('screen_sheet.jpg'); print('screen frames', N)

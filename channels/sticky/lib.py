@@ -3151,3 +3151,167 @@ def audience(cv, T, y0=1100, rows=4, hi_seat=None, hi=0.0, dark=0.6):
                 cv.drawCircle(x, y - 80, 140, fillp(C('#ffe0a0'), alpha=0.35 * hi, blur=30))
                 character(cv, 'whit', x, y + 60, 34 + r * 4, t=T, expr='neutral')
             else: silhouette(cv, f)
+
+# ---- additions for Joe Simpson / Siula Grande (Touching the Void story)
+_hair_old24 = hair
+def hair(cv, x, y, u, kind, back=False):
+    if kind in ('helmet_red', 'helmet_blue'):      # climbing helmet: dome + rim + a small headlamp
+        if back: return
+        col = C('#d8402e') if kind == 'helmet_red' else C('#2f6fc0')
+        p = skia.Path(); p.addArc(skia.Rect(x - u * 1.08, y - u * 1.22, x + u * 1.08, y + u * 0.5), 180, 180); p.close()
+        cv.drawPath(p, fillp(shader=lin((x - u, y - u * 1.2), (x + u, y), [shade(col, 1.2), shade(col, 0.85)]))); cv.drawPath(p, strokep(INK, u * 0.08))
+        cv.drawRoundRect(skia.Rect(x - u * 1.12, y - u * 0.42, x + u * 1.12, y - u * 0.28), u * 0.07, u * 0.07, fillp(shade(col, 0.7)))
+        cv.drawRoundRect(skia.Rect(x - u * 1.12, y - u * 0.42, x + u * 1.12, y - u * 0.28), u * 0.07, u * 0.07, strokep(INK, u * 0.05))
+        cv.drawRoundRect(skia.Rect(x - u * 0.2, y - u * 0.62, x + u * 0.2, y - u * 0.4), u * 0.06, u * 0.06, fillp(C('#f4f0d8')))
+        cv.drawRoundRect(skia.Rect(x - u * 0.2, y - u * 0.62, x + u * 0.2, y - u * 0.4), u * 0.06, u * 0.06, strokep(INK, u * 0.04))
+        return
+    return _hair_old24(cv, x, y, u, kind, back)
+
+CHARS.update({
+    'joe':   dict(adult=True, shirt=C('#d8743a'), stripe=C('#b85a28'), hair='helmet_red', pants=C('#2a3550')),
+    'simon': dict(adult=True, shirt=C('#3a8a7a'), stripe=C('#2c6e62'), hair='helmet_blue', pants=C('#3a3a44')),
+    'joe_bare': dict(adult=True, shirt=C('#d8743a'), stripe=C('#b85a28'), hair='short', pants=C('#2a3550')),
+    'simon_bare': dict(adult=True, shirt=C('#3a8a7a'), stripe=C('#2c6e62'), hair='short_black', pants=C('#3a3a44')),
+})
+
+ICE = C('#cfe6f5'); ICE_D = C('#7fb0d4'); ICE_DD = C('#2a5a84')
+def andes_sky(cv, dark=0.0, dusk=0.0):
+    top = mix(mix(C('#3a7ac8'), C('#e88a5a'), dusk * 0.4), C('#0a1024'), dark)
+    bot = mix(mix(C('#cfe6f8'), C('#f8c890'), dusk), C('#2a3656'), dark)
+    cv.drawRect(skia.Rect(-400, -400, W + 400, H + 400), fillp(shader=lin((0, 0), (0, 1300), [top, bot])))
+
+def peak(cv, x, y, s=1.0, dark=0.0, flutes=True, col=C('#a8b4c8')):
+    """Siula Grande-like summit: a steep pyramid with a fluted west face of snow. x,y = foot centre, s=1 is 1000 px tall."""
+    cv.save(); cv.translate(x, y); cv.scale(s, s)
+    rock = mix(col, C('#1e2436'), dark)
+    body = [(-620, 0), (-260, -560), (-120, -800), (0, -1000), (90, -860), (230, -640), (640, 0)]
+    cv.drawPath(poly(body), fillp(shader=lin((-600, -1000), (600, 0), [shade(rock, 1.15), shade(rock, 0.75)]))); cv.drawPath(poly(body), strokep(INK, 7))
+    snow = mix(C('#f6faff'), C('#7a86a4'), dark)
+    sn = [(-120, -800), (0, -1000), (90, -860), (170, -700), (60, -560), (-40, -620), (-150, -500), (-260, -560)]
+    cv.drawPath(poly(sn), fillp(snow)); cv.drawPath(poly(sn), strokep(INK, 5))
+    if flutes:
+        for i in range(9):
+            fx = -230 + i * 50
+            cv.drawLine(fx + 80, -560 - 330 * math.exp(-((i - 4) / 3.5) ** 2), fx - 10, -60 - (i % 3) * 30, strokep(shade(snow, 0.88), 9, alpha=0.8))
+    cv.restore()
+
+def range_bg(cv, T, dark=0.0, y=1250, far=True):
+    if far:
+        for i, (px, h) in enumerate(((-80, 380), (260, 470), (620, 340), (980, 450), (1250, 300))):
+            pts = [(px - 380, y), (px, y - h), (px + 380, y)]
+            cv.drawPath(poly(pts), fillp(mix(C('#b8c6dc'), C('#28324a'), dark), alpha=0.9))
+            cv.drawPath(poly([(px - 90, y - h * 0.76), (px, y - h), (px + 90, y - h * 0.76), (px + 30, y - h * 0.7)]), fillp(mix(C('#f4f8fc'), C('#6a7690'), dark)))
+
+def rope(cv, pts, col=C('#e8c040'), w=10, alpha=1.0, slack=0.0):
+    """rope through pts (list of (x,y)); slack bends each segment downwards."""
+    p = skia.Path(); p.moveTo(*pts[0])
+    for a, b in zip(pts, pts[1:]):
+        mx, my = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2 + slack * math.dist(a, b) * 0.25
+        p.quadTo(mx, my, b[0], b[1])
+    cv.drawPath(p, strokep(INK, w + 6, alpha=alpha)); cv.drawPath(p, strokep(col, w, alpha=alpha))
+    dash = strokep(shade(col, 0.7), w * 0.45, alpha=alpha); dash.setPathEffect(skia.DashPathEffect.Make([w * 0.9, w * 1.1], 0))
+    cv.drawPath(p, dash)
+
+def ice_wall(cv, x0, y0, x1, y1, T=0, seed=3, over=0.0):
+    """blue ice face from (x0,y0) top-left to (x1,y1) bottom-right; over = overhang of the top edge (px)."""
+    pts = [(x0 - over, y0), (x1 + over, y0), (x1, y1), (x0, y1)]
+    cv.drawPath(poly(pts), fillp(shader=lin((0, y0), (0, y1), [ICE, ICE_D]))); cv.drawPath(poly(pts), strokep(INK, 6))
+    rnd = random.Random(seed)
+    for i in range(10):
+        xx = rnd.uniform(x0, x1); cv.drawLine(xx, y0 + 20, xx + rnd.uniform(-30, 30), y1 - rnd.uniform(20, 200), strokep(C('#ffffff'), rnd.uniform(4, 10), alpha=0.35))
+    for i in range(int((x1 - x0) / 46)):     # icicles under the lip
+        ix = x0 - over + 20 + i * 46 + rnd.uniform(-8, 8); L = rnd.uniform(30, 90)
+        cv.drawPath(poly([(ix - 12, y0), (ix + 12, y0), (ix, y0 + L)]), fillp(C('#eaf6ff'))); cv.drawPath(poly([(ix - 12, y0), (ix + 12, y0), (ix, y0 + L)]), strokep(INK, 3))
+    cv.drawRect(skia.Rect(x0 - over - 10, y0 - 40, x1 + over + 10, y0), fillp(C('#f6faff'))); cv.drawLine(x0 - over - 10, y0, x1 + over + 10, y0, strokep(INK, 5))
+
+def crevasse_bg(cv, T, light=0.5, depth=1.0):
+    """inside a crevasse: two blue ice walls, a sliver of sky at the top, darkness below."""
+    cv.drawRect(skia.Rect(-400, -400, W + 400, H + 400), fillp(shader=lin((0, 0), (0, H), [C('#0e2a48'), C('#020610')])))
+    cv.drawPath(poly([(380, -400), (700, -400), (640, 200), (450, 220)]), fillp(C('#dff2ff'), alpha=0.55 * light + 0.2))
+    for side in (-1, 1):
+        x_edge = 540 + side * 170
+        pts = [(540 + side * 1000, -400), (x_edge + side * 10, -400), (x_edge - side * 40, 500), (x_edge + side * 60, 1100), (x_edge - side * 20, 1700), (540 + side * 140, 2400), (540 + side * 1000, 2400)]
+        cv.drawPath(poly(pts), fillp(shader=lin((x_edge, 0), (540 + side * 700, 0), [C('#5a9ac8'), C('#0e2a48')])))
+        cv.drawPath(poly(pts), strokep(INK, 6))
+        rnd = random.Random(side + 7)
+        for i in range(12):
+            yy = rnd.uniform(-200, 1900); cv.drawLine(x_edge + side * 30, yy, x_edge + side * rnd.uniform(200, 500), yy + rnd.uniform(-60, 60), strokep(C('#9ad0f0'), rnd.uniform(3, 7), alpha=0.35))
+    cv.drawPath(poly([(380, -400), (700, -400), (600, 1200), (480, 1200)]), fillp(C('#cfefff'), alpha=0.12 * light, blur=30))
+
+def ice_ledge(cv, x, y, w=420, s=1.0):
+    p = poly([(x - w / 2, y), (x + w / 2, y - 6), (x + w / 2 - 40, y + 60), (x + 30, y + 110), (x - w / 2 + 50, y + 70)])
+    cv.drawPath(p, fillp(shader=lin((0, y), (0, y + 110), [C('#e8f6ff'), C('#6aa0c8')]))); cv.drawPath(p, strokep(INK, 6))
+
+def tent(cv, x, y, s=1.0, lit=False, col=C('#e8a030'), T=0):
+    cv.save(); cv.translate(x, y); cv.scale(s, s)
+    if lit: cv.drawCircle(0, -80, 260, fillp(C('#ffd890'), alpha=0.35, blur=60))
+    body = poly([(-200, 0), (0, -190), (200, 0)])
+    cv.drawPath(body, fillp(shade(col, 1.25) if lit else col)); cv.drawPath(body, strokep(INK, 7))
+    cv.drawPath(poly([(-40, 0), (0, -110), (40, 0)]), fillp(C('#3a2a1a') if not lit else C('#fff0b8'))); cv.drawPath(poly([(-40, 0), (0, -110), (40, 0)]), strokep(INK, 5))
+    cv.drawLine(0, -190, 0, -230, strokep(INK, 6)); cv.drawLine(-200, 0, -260, 10, strokep(INK, 3)); cv.drawLine(200, 0, 260, 10, strokep(INK, 3))
+    cv.restore()
+
+def ice_axe(cv, x, y, s=1.0, ang=0):
+    cv.save(); cv.translate(x, y); cv.rotate(ang); cv.scale(s, s)
+    cv.drawRoundRect(skia.Rect(-8, -10, 8, 160), 6, 6, fillp(C('#3a3a44'))); cv.drawRoundRect(skia.Rect(-8, -10, 8, 160), 6, 6, strokep(INK, 4))
+    hp = poly([(-70, -10), (60, -22), (80, -6), (10, 4), (-70, 6)])
+    cv.drawPath(hp, fillp(C('#c8ccd4'))); cv.drawPath(hp, strokep(INK, 4)); cv.restore()
+
+def bone_icon(cv, x, y, s=1.0, crack=0.0, k=1.0):
+    """simple cartoon leg bone (x-ray card style); crack 0..1 draws the break as a red zigzag. Non-graphic."""
+    if k <= 0: return
+    cv.save(); cv.translate(x, y); cv.scale(s * k, s * k)
+    cv.drawRoundRect(skia.Rect(-220, -300, 220, 300), 30, 30, fillp(C('#0e1a2a'))); cv.drawRoundRect(skia.Rect(-220, -300, 220, 300), 30, 30, strokep(INK, 8))
+    for dy in (-1, 1):
+        cv.drawRoundRect(skia.Rect(-28, dy * 30 - (220 if dy < 0 else 0), 28, dy * 30 + (220 if dy > 0 else 0)), 20, 20, fillp(C('#eef4ff')))
+        for sx in (-1, 1): cv.drawCircle(sx * 34, dy * 230, 40, fillp(C('#eef4ff')))
+    cv.drawRoundRect(skia.Rect(-60, -40, 60, 40), 30, 30, fillp(C('#eef4ff')))
+    if crack > 0:
+        zz = [(-70, -6), (-40, 14), (-10, -14), (20, 12), (50, -10), (80, 8)]
+        n = max(2, int(len(zz) * crack + 0.999)); cv.drawPath(poly(zz[:n], close=False), strokep(C('#e2483b'), 12))
+    cv.restore()
+
+def peru_map(cv, T, pin=1.0, sea=C('#2e5670'), land=C('#d8c49a')):
+    cv.drawRect(skia.Rect(-400, -400, W + 400, H + 400), fillp(sea))
+    for i in range(-400, W + 400, 60): cv.drawLine(i, -400, i, H + 400, strokep(shade(sea, 1.12), 2))
+    for j in range(-400, H + 400, 60): cv.drawLine(-400, j, W + 400, j, strokep(shade(sea, 1.12), 2))
+    sa = [(300, 240), (520, 160), (760, 260), (980, 420), (1040, 640), (980, 860), (860, 1080), (760, 1300), (640, 1520), (560, 1760), (520, 1900), (470, 1880),
+          (470, 1600), (420, 1300), (360, 1060), (300, 860), (220, 700), (200, 520), (240, 360)]
+    cv.drawPath(poly(sa), fillp(shade(land, 0.92))); cv.drawPath(poly(sa), strokep(INK, 6))
+    pe = [(240, 360), (330, 420), (380, 560), (470, 640), (480, 820), (430, 960), (360, 1000), (300, 860), (220, 700), (200, 520)]
+    cv.drawPath(poly(pe), fillp(C('#d8a070'))); cv.drawPath(poly(pe), strokep(INK, 6))
+    text(cv, 'PERU', 330, 600, 48, INK)
+    text(cv, 'SOUTH AMERICA', 720, 1000, 34, shade(INK, 1.6))
+    k = back(clamp(pin))
+    if k > 0:
+        cv.save(); cv.translate(390, 760); cv.scale(k, k)
+        cv.drawPath(poly([(0, 0), (-28, -56), (28, -56)]), fillp(C('#e2483b'))); cv.drawCircle(0, -76, 34, fillp(C('#e2483b'))); cv.drawCircle(0, -76, 34, strokep(INK, 5))
+        cv.drawCircle(0, -76, 11, fillp(C('#f4efe2'))); cv.restore()
+
+def moraine(cv, T, y=1150, seed=4, dark=0.0):
+    """glacier moraine: grey rubble field under a pale sky."""
+    cv.drawRect(skia.Rect(-400, y - 40, W + 400, H + 400), fillp(shader=lin((0, y), (0, H), [mix(C('#9a958a'), C('#2a2a30'), dark), mix(C('#6a655c'), C('#14141a'), dark)])))
+    rnd = random.Random(seed)
+    for i in range(70):
+        rx = rnd.uniform(-200, W + 200); ry = rnd.uniform(y, H + 100); r = rnd.uniform(14, 46) * (0.6 + (ry - y) / 900)
+        cv.drawOval(skia.Rect(rx - r, ry - r * 0.6, rx + r, ry + r * 0.5), fillp(mix(C('#b0aaa0'), C('#3a3a40'), dark * 0.8 + rnd.uniform(0, 0.25))))
+        cv.drawOval(skia.Rect(rx - r, ry - r * 0.6, rx + r, ry + r * 0.5), strokep(INK, 3))
+
+def crawler(cv, name, x, y, u, T, speed=3.0, expr='strain', look=(1, 0.2)):
+    """a stick figure dragging himself along on his elbows, facing right; the stiff (broken) leg trails straight."""
+    ph = T * speed
+    cv.save(); cv.translate(x, y)
+    lw = u * 0.085; lp = strokep(INK, lw)
+    hip = (-u * 1.2, -u * 0.25); sh = (u * 0.35, -u * 0.55 + math.sin(ph) * u * 0.05)
+    cv.drawLine(*hip, -u * 3.0, -u * 0.08, lp)                                 # stiff leg, straight out behind
+    cv.drawLine(*hip, -u * 2.3, -u * 0.3 + math.sin(ph) * u * 0.08, lp); cv.drawLine(-u * 2.3, -u * 0.3 + math.sin(ph) * u * 0.08, -u * 2.9, -u * 0.05, lp)
+    body = skia.Path(); body.moveTo(*hip); body.lineTo(*sh)
+    cv.drawPath(body, strokep(INK, u * 1.0)); cv.drawPath(body, strokep(CHARS[name]['shirt'], u * 0.84))
+    for s_ in (0, math.pi):
+        ex = sh[0] + u * 0.6 + math.cos(ph + s_) * u * 0.35; cv.drawLine(*sh, ex, -u * 0.15, lp); cv.drawLine(ex, -u * 0.15, ex + u * 0.4, -u * 0.02, lp)
+    hx, hy = sh[0] + u * 1.15, sh[1] - u * 0.45
+    hair(cv, hx, hy, u, CHARS[name]['hair'], back=True)
+    hr_ = skia.Rect(hx - u, hy - u * 0.95, hx + u, hy + u * 0.92)
+    cv.drawOval(hr_, fillp(shader=rad((hx - u * 0.35, hy - u * 0.4), u * 1.6, [C('#ffffff'), HEAD, C('#d9d6cf')], [0, 0.55, 1]))); cv.drawOval(hr_, strokep(INK, lw))
+    hair(cv, hx, hy, u, CHARS[name]['hair']); face(cv, hx, hy, u, expr, ((T % 3.1) < 0.12), look)
+    cv.restore()
