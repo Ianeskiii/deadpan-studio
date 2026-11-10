@@ -49,7 +49,8 @@ add(creak(), fr(B['G_FREEZE']), 1, 0.25)                                        
 add(swallow(), fr(B['G_HES1'] + 1), 1, 0.2)                                         # nervous swallow before the first lie
 add(rustle(0.4, 0.02), fr(B['G_LOWER'][0]), 1, 0.2)                                 # sleeve as the fork goes down
 add(clink(0.02, 3600), fr(B['G_LOWER'][1]), 1, 0.2)
-add(pat(), fr(B['CRUMB'][1]), 1, 0.15)                                             # the crumb lands
+add(chew(0.07, 0.012), fr(B['CRUMB'][0]), 1, 0.15)                                # tiny wet tick as it lets go of his lip
+add(pat(0.085), fr(B['CRUMB'][1]), 1, 0.15)                                         # the crumb lands on his jacket (soft, clear)
 add(swallow(0.02), fr(SH['H'][0] + 18), 1, 0.15)                                    # before "That's not mine."
 # ---- voices
 for k_, v in T.items():

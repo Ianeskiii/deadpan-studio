@@ -217,15 +217,14 @@ F_NOTICE, F_FREEZE = BT['G_NOTICE'], BT['G_FREEZE']
 F_HES1, F_HES2 = BT['G_HES1'], BT['G_HES2']
 F_TO_FORK = BT['D_TO_FORK']; F_SEE = BT['G_SEE_STARE']; LOW0, LOW1 = BT['G_LOWER']
 F_TO_BOX, F_BACK, F_TO_MOUTH = BT['D_TO_BOX'], BT['D_BACK'], BT['D_TO_MOUTH']
-CR0, CR1 = BT['CRUMB']; F_GDOWN, F_DDOWN = BT['G_LOOKDOWN'], BT['D_LOOKDOWN']; UP0, UP1 = BT['G_LOOKUP']
+CR0, CR1 = BT['CRUMB']; SL0, SL1 = BT['CRUMB_SLIP']; F_TO_FACE = BT['D_TO_FACE']; F_SLOWBLINK = BT['D_SLOWBLINK']; F_GDOWN, F_DDOWN = BT['G_LOOKDOWN'], BT['D_LOOKDOWN']; UP0, UP1 = BT['G_LOOKUP']
 L = {k: v for k, v in TM.items() if isinstance(v, dict)}
 
 # ============================================================ DOUG: walks in, stops, then stands perfectly still (breathing only)
 doug_r.walk(WALK0, WALK1, (D_START.x, D_START.y), (D_POS.x, D_POS.y), math.degrees(math.atan2(D_POS.x - D_START.x, -(D_POS.y - D_START.y))),
             steps=3.0, arms=swing_d, lean=4, bob=0.03, sway=4)
 WALK_HEAD = math.degrees(math.atan2(D_POS.x - D_START.x, -(D_POS.y - D_START.y)))
-D_ROT = [(WALK1, (2, 0, 0)), (WALK1 + 6, (0, 0, 0)), (F_DDOWN - 2, (0, 0, 0)), (F_DDOWN + 6, (9, 0, 0)), (SH['H'][0] + 4, (9, 0, 0)),
-         (SH['H'][0] + 14, (1, 0, 0)), (N, (1, 0, 0))]
+D_ROT = [(WALK1, (2, 0, 0)), (WALK1 + 6, (0, 0, 0)), (N, (0, 0, 0))]      # + head-follows-gaze offsets, keyed in FACES
 for f in range(WALK1, N + 1):
     doug_r.place(f, (D_POS.x, D_POS.y), WALK_HEAD + (D_HEAD - WALK_HEAD) * smooth((f - WALK1) / 7))
     br = 0.004 * math.sin(2 * math.pi * f / 105)
@@ -269,7 +268,7 @@ G_ROT = [(1, (-3, 0, 0)), (F_NOTICE, (-3, 0, 0)), (F_FREEZE, (-4, 0, 0)),       
          (F_SEE, (-5, 0, 0)), (F_SEE + 8, (1, 0, 0)), (LOW1, (0, 0, 0)),          # looks down at his fork, lowers it
          (F_HES2, (1, -2, 0)), (L['g2']['fs'] + 2, (-6, 3, 0)), (L['g2']['fe'] + 8, (-5, 2, 0)),
          (L['g3']['fs'] - 2, (-5, 2, 0)), (L['g3']['fs'] + 8, (-6, -4, 0)), (L['g3']['fe'], (-6, -4, 0)),   # head tilt: "like that?"
-         (CR0, (-5, -2, 0)), (F_GDOWN, (-4, 0, 0)), (F_GDOWN + 8, (12, 0, 0)), (UP0, (12, 0, 0)),          # looks down at it
+         (SL0, (-5, -2, 0)), (CR1 + 2, (-5, -2, 0)), (CR1 + 5, (-6, -1, 0)), (F_GDOWN, (-6, -1, 0)), (F_GDOWN + 7, (11, 0, 0)), (UP0, (12, 0, 0)),          # looks down at it
          (UP1, (-3, 0, 0)), (N, (-3, 0, 0))]
 G_UP = [(1, 0.0), (F_NOTICE, 0.0), (F_FREEZE, 0.012), (F_HES1, 0.012), (L['g1']['fe'] + 10, 0.004), (N, 0.004)]
 for f in range(1, N + 1):
@@ -294,15 +293,23 @@ sl.scale = (0.86, 0.86, 1); sl.keyframe_insert('scale', frame=18)
 
 # ============================================================ THE CRUMB (falls out of his mouth onto his jacket)
 crumb_e = empty('crumb_e', tuple(G_MOUTH_L + V(0, -0.012, -0.012)), green_r.upper)
-cake_slice('crumb', 0.028, D(60), crumb_e)
+cake_slice('crumb', 0.034, D(60), crumb_e)
 crumb_e.rotation_euler = (D(70), D(20), 0)
 LAND = V(0.025, -0.3, 0.40)                       # on the jacket front, chest height (sticks: it's frosting)
+C_IN = G_MOUTH_L + V(0, 0.0, -0.008)            # inside the lips
+C_LIP = G_MOUTH_L + V(0.004, -0.03, -0.024)       # hanging off the lower lip
 for f in range(1, N + 1):
-    if f < CR0: p, s, r = G_MOUTH_L + V(0, -0.006, -0.014), 0.001, (D(70), D(20), 0)       # still in his mouth
-    elif f <= CR1:
+    if f < SL0: p, s, r = C_IN, 0.001, (D(70), D(20), 0)                                      # still in his mouth
+    elif f <= SL1:
+        t = smooth((f - SL0) / (SL1 - SL0))
+        p = C_IN.lerp(C_LIP, t); s = 0.55 + 0.45 * t; r = (D(70 + 25 * t), D(20), 0)
+    elif f < CR0:                                                                                # hangs there, trembling
+        k = f - SL1; p = C_LIP + V(0, 0, -0.002 * (k / (CR0 - SL1))); s = 1.0
+        r = (D(95 + 4 * math.sin(k * 1.9) + 6 * (k / (CR0 - SL1)) ** 2), D(20), 0)
+    elif f <= CR1:                                                                               # falls: gravity in z, a small arc out
         t = (f - CR0) / (CR1 - CR0)
-        p = (G_MOUTH_L + V(0, -0.02, -0.02)).lerp(LAND, t * t) + V(0, -0.03 * math.sin(math.pi * t), 0); s = 1.0
-        r = (D(70 + 140 * t), D(20 + 60 * t), D(30 * t))
+        p = V(C_LIP.x + (LAND.x - C_LIP.x) * t, C_LIP.y + (LAND.y - C_LIP.y) * t - 0.03 * math.sin(math.pi * t), C_LIP.z + (LAND.z - C_LIP.z) * t * t)
+        s = 1.0; r = (D(101 + 109 * t), D(20 + 60 * t), D(30 * t))
     else:
         k = f - CR1; p = LAND + V(0, 0, 0.012 * math.exp(-k / 2) * abs(math.sin(k * 1.6))); s = 1.0; r = (D(210), D(80), D(30))
     crumb_e.location = p; crumb_e.scale = (s, s, s); crumb_e.rotation_euler = r
@@ -350,8 +357,8 @@ def blink_amt(f, blinks):
         if abs(f - b_) <= dur: return 1 - abs(f - b_) / (dur + 1)
     return 0.0
 # Doug: deadpan lids the whole time, a touch heavier once he has seen the frosting; one slow blink in the final stare
-D_LID = [(1, 23), (F_TO_MOUTH, 23), (F_TO_MOUTH + 8, 27), (SH['I'][0], 27), (SH['I'][0] + 10, 29), (N, 29)]
-D_BLINKS = [(WALK1 + 4, 3), (F_BACK - 3, 2), (SH['E'][0] + 30, 3), (F_DDOWN - 6, 2), (SH['I'][0] + 24, 5)]
+D_LID = [(1, 23), (F_TO_MOUTH, 23), (F_TO_MOUTH + 8, 27), (SH['I'][0], 27), (F_SLOWBLINK + 10, 29), (N, 29)]
+D_BLINKS = [(WALK1 + 4, 3), (SH['B'][1] - 6, 2), (F_BACK, 2), (SH['E'][0] + 30, 3), (F_DDOWN - 6, 2), (F_SLOWBLINK, 7)]
 # Green: relaxed while eating (30), caught (-34), confident between lies (8), hitch before each lie (-28)
 G_LID = [(1, 30), (F_NOTICE, 30), (F_NOTICE + 3, -34), (F_HES1, -30), (F_HES1 + 3, -28), (L['g1']['fs'] + 2, 6), (L['g1']['fe'] + 8, 8),
          (F_SEE, 8), (F_SEE + 4, -18), (LOW1, -10), (F_HES2, -24), (L['g2']['fs'] + 3, 6), (L['g2']['fe'] + 10, 8),
@@ -387,10 +394,24 @@ def blend(keys, f):
     return cur
 def ahead_d(): return doug_r.upper.matrix_world @ V(0, -2.0, D_EZ - 0.15)
 D_GAZE = [(1, ahead_d), (WALK1 - 6, g_face), (F_TO_FORK, g_fork), (LOW1 + 4, g_face), (F_TO_BOX, box_pt), (F_BACK, g_face), (F_TO_MOUTH, g_mouth),
-          (CR0 + 2, crumb_pt), (SH['H'][0] + 10, g_face), (N, g_face)]
+          (F_TO_FACE, g_face), (CR0 + 2, crumb_pt), (SH['H'][0] + 12, g_face), (N, g_face)]
+def g_plate(): return g_up() @ (SLICE_TOP + V(0, 0, -0.03))
 G_GAZE = [(1, g_fork), (F_NOTICE, d_face), (F_HES1, lambda: d_face() + V(0.25, 0.1, -0.35)), (F_HES1 + 6, d_face),
           (F_SEE, g_fork), (LOW1 - 6, d_face), (F_HES2, lambda: d_face() + V(-0.3, 0.2, -0.3)), (F_HES2 + 6, d_face),
-          (F_GDOWN, crumb_pt), (UP0 + 6, d_face), (N, d_face)]
+          (SH['E'][0] + 1, g_plate), (SH['E'][0] + 7, d_face),                          # a nervous flick down at the evidence
+          (CR1 + 3, lambda: d_face() + V(0, 0, -0.05)), (F_GDOWN, crumb_pt), (UP0 + 6, d_face), (N, d_face)]
+def heading_to(P0, P1): return math.degrees(math.atan2(P1.x - P0.x, -(P1.y - P0.y)))
+HF = {}
+for f in range(WALK1, N + 1):
+    scene.frame_set(f); E_ = d_face(); T_ = blend(D_GAZE, f); GP_ = g_face()
+    yaw = heading_to(E_, T_) - heading_to(E_, GP_)
+    el = lambda P: math.degrees(math.atan2(P.z - E_.z, math.hypot(P.x - E_.x, P.y - E_.y)))
+    HF[f] = (max(-9, min(9, 0.3 * yaw)), max(-4, min(11, -0.4 * (el(T_) - el(GP_)))))
+for f in range(WALK1, N + 1):
+    fs = [HF[max(WALK1, f - j)] for j in range(3, 9)]                 # lags the eyes by ~3-8 frames
+    yaw = sum(a for a, b in fs) / len(fs); pit = sum(b for a, b in fs) / len(fs)
+    b0 = ease_tab(D_ROT, f); doug_r.upper.rotation_euler = (D(b0[0] + pit), D(b0[1] - 0.25 * yaw), D(b0[2] + yaw))
+    doug_r.upper.keyframe_insert('rotation_euler', frame=f)
 for f in range(1, N + 1):
     scene.frame_set(f)
     # Doug
@@ -426,19 +447,21 @@ def cam_for(f):
         t = (f - 1) / (SH['A'][1] - 1); p, tg, ln, fs, fp = WIDE
         return p + V(-0.04, 0.05, 0) * smooth(t), tg, ln + 0.6 * smooth(t), fs, fp
     if f <= SH['B'][1]:
-        t = (f - SH['B'][0]) / (SH['B'][1] - SH['B'][0]); a = d_cu(1.35, 26); return a[0] + rotz(dDG, 24) * (-0.04 * t), *a[1:]
+        t = (f - SH['B'][0]) / (SH['B'][1] - SH['B'][0]); a = d_cu(1.75, 27)    # a little wider than D/I: the head dip reads
+        return a[0] + rotz(dDG, 24) * (-0.05 * t) + V(0, 0, -0.04), a[1] + V(0, 0, -0.08), *a[2:]
     if f <= SH['C'][1]:        # Green medium: face, fork, plate and the box at his hip all in frame
         t = smooth((f - SH['C'][0]) / (SH['C'][1] - SH['C'][0]))
         p = GF + rotz(-dDG, 28) * 1.6 + V(0, 0, -0.1); tg = GF + V(0.16, 0.05, -0.33)
         return p + rotz(-dDG, 28) * (-0.08 * t), tg, 30, 5.6, GF + V(0, 0, -0.2)
     if f <= SH['D'][1]: return d_cu(1.3, 27)
     if f <= SH['E'][1]: return g_cu(1.2, 27, -0.06)
-    if f <= SH['F'][1]:        # slow push-in on his face (mouth + chest stay in frame for the crumb)
+    if f <= SH['F'][1]:        # MEDIUM: mouth, chest and lap in frame for the whole fall; a very slow creep in
         t = smooth((f - SH['F'][0]) / (SH['F'][1] - SH['F'][0]))
-        a = g_cu(1.2, 27, -0.06); b = g_cu(0.95, 27, -0.12)
-        return a[0].lerp(b[0], t), a[1].lerp(b[1], t), 27, 4.0, GM
+        d0 = rotz(-dDG, -14); p = GF + d0 * 1.55 + V(0, 0, -0.12); tg = GF + V(0, 0, -0.26)
+        return p + d0 * (-0.1 * t), tg, 30, 5.6, GM + V(0, 0, -0.08)
     if f <= SH['G'][1]: return WIDE[0] + V(-0.04, 0.05, 0), WIDE[1], WIDE[2] + 0.6, WIDE[3], WIDE[4]
-    if f <= SH['H'][1]: return g_cu(1.15, 27, -0.06)
+    if f <= SH['H'][1]:        # medium close: face + the cake on his shirt, both clear of the subtitle
+        d0 = rotz(-dDG, -20); return GF + d0 * 1.35 + V(0, 0, -0.03), GF + V(0, 0, -0.2), 29, 4.5, GF + V(0, 0, -0.1)
     t = (f - SH['I'][0]) / max(1, SH['I'][1] - SH['I'][0]); a = d_cu(1.3, 28)
     return a[0] + rotz(dDG, 24) * (-0.05 * t), *a[1:]
 def cam_setup(name):

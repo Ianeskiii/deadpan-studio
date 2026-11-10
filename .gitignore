@@ -33,3 +33,4 @@ channels/sticky/**/result.json
 .venv/
 .local/
 *.part
+ep15/qa/

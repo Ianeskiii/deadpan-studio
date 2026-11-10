@@ -34,7 +34,7 @@ def build(name, parts, wet=0.08):
     a = norm(room(tone(a), wet)); sf.write(f'vo/{name}.wav', a, SR); print(name, round(len(a) / SR, 2))
 LINES = sys.argv[1:] or ['d1', 'g1', 'g2', 'g3', 'g4']
 if 'd1' in LINES: build('d1', [breath(0.2, 0.02), tx('Did you eat my cake?', DG, 0.9)])
-if 'g1' in LINES: build('g1', [tx('What?', GR, 1.05), sil(0.22), tx('No.', GR, 1.0)])
+if 'g1' in LINES: build('g1', [tx('What?', GR, 1.05), sil(0.34), tx('No.', GR, 1.0)])
 if 'g2' in LINES: build('g2', [breath(0.16, 0.025), tx("I haven't even seen your cake.", GR, 1.02)])
 if 'g3' in LINES: build('g3', [tx('Why are you looking at me like that?', GR, 1.0)])
 if 'g4' in LINES: build('g4', [breath(0.3, 0.03), sil(0.1), tx("That's not mine.", GR, 0.9)])
