@@ -26,4 +26,4 @@ Code for each sticky short is in `channels/sticky/episodes/<id>/` (the first fou
 | examples/kara-robinson | A Kidnapped Teenager Memorized Her Captor's Apartment… Then Escaped | v1 | 40 shots, 91.2 s |
 | examples/james-howells-bitcoin | The Man Who Accidentally Threw Away $800 Million in Bitcoin | v1 | 34 shots, 91.0 s |
 | examples/coughing-major | The Man Who Cheated His Way to a Million With a Cough | v1 | 33 shots, 84.2 s |
-| episodes/his-climbing-partner-cut-the-rope-but-he-survive | His Climbing Partner Cut the Rope… But He Survived — Joe Simpson | v1 | 38 shots, 76.8 s. Adds climbing assets to `lib.py` (helmets, peak, rope, ice walls, crevasse, tent, x-ray bone, Peru map, moraine, crawler) |
+| episodes/his-climbing-partner-cut-the-rope-but-he-survive | His Climbing Partner Cut the Rope… But He Survived — Joe Simpson | v1, v2 | 38 shots, 76.8 s. v2: re-timed to the voice after the new alignment (SYNC OK); `timeline.py` tidy now moves words whisper stretches across a pause. Adds climbing assets to `lib.py` (helmets, peak, rope, ice walls, crevasse, tent, x-ray bone, Peru map, moraine, crawler) |
