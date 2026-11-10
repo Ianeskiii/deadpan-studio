@@ -24,6 +24,7 @@ def swipe(g=1.0):
 for s in B['SWIPES']:
     put(mix, tap(0.05), T(s)); put(mix, swipe(0.02), T(s) + 0.01)
 put(mix, tap(0.07), T(B['TAP_CAM']))
+put(mix, tap(0.045), T(B['SWIPE_CAM'])); put(mix, swipe(0.02), T(B['SWIPE_CAM']) + 0.01)   # v2: the lazy swipe on the camera view
 # camera opening: a soft rising blip + a tiny mechanical tick (original, synthetic)
 m = int(0.16 * SR); tt = np.arange(m) / SR
 blip = np.sin(2 * np.pi * (700 * tt + 2600 * tt * tt)) * np.minimum(1, tt / 0.01) * np.exp(-tt * 18)
