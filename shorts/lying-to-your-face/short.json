@@ -1,0 +1,34 @@
+{
+  "id": "lying-to-your-face",
+  "title": "When Someone Is Lying Straight to Your Face",
+  "description": "Doug walks into the living room. Green is on the couch eating chocolate cake, Doug's cake box hidden behind his hip. Doug: \"Did you eat my cake?\" Green: \"What? No.\" Doug looks at the cake on the fork; Green slowly lowers it: \"I haven't even seen your cake.\" Doug looks at the box, back at Green's frosting-smeared mouth. Green: \"Why are you looking at me like that?\" Silence, push in, a piece of cake falls from his mouth onto his shirt. Both look down. Green, dead serious: \"...That's not mine.\" Doug's long deadpan stare. Cut to black.",
+  "durationMin": 15,
+  "durationMax": 20,
+  "characters": [
+    "doug",
+    "ricky"
+  ],
+  "newCharacters": "",
+  "scene": "living-room",
+  "newScene": "",
+  "status": "ready",
+  "stage": "Ready",
+  "stageIndex": 9,
+  "progress": 100,
+  "etaMinutes": null,
+  "note": "",
+  "revisions": [],
+  "createdAt": 1794321348330,
+  "updatedAt": 1794321348401,
+  "episode": "ep15",
+  "channel": "deadpan-doug",
+  "versions": [
+    {
+      "v": 1,
+      "video": "v1.mp4",
+      "poster": "v1.jpg",
+      "seconds": 19.0,
+      "notes": "First cut"
+    }
+  ]
+}
