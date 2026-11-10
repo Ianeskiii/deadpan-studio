@@ -34,3 +34,4 @@ channels/sticky/**/result.json
 .local/
 *.part
 ep15/qa/
+ep14/qa/
