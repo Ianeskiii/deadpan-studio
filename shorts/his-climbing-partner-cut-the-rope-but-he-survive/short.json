@@ -4,11 +4,11 @@
   "channel": "sticky",
   "description": "",
   "status": "working",
-  "stage": "Timing",
-  "stageIndex": 3,
-  "progress": 33,
-  "etaMinutes": 60.0,
-  "note": "Re-timing the narration with the new alignment",
+  "stage": "Test frames",
+  "stageIndex": 5,
+  "progress": 56,
+  "etaMinutes": 40.0,
+  "note": "Test frames on the new timing (same shots)",
   "versions": [
     {
       "v": 1,
@@ -27,6 +27,6 @@
     }
   ],
   "createdAt": 1794287783770,
-  "updatedAt": 1794322636734,
+  "updatedAt": 1794323617203,
   "narrationAt": 1794292410070
 }
