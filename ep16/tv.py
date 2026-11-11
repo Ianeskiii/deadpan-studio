@@ -66,5 +66,5 @@ for f in range(1, N + 1):
         im = menu(f)
         if f < B['MENU_ON'] + 8: im = Image.blend(Image.new('RGB', (W, H)), im, sm((f - B['MENU_ON']) / 8))
     im.save(f'tv/tv_{f:04d}.png')
-Image.open(f'tv/tv_{B["MENU_ON"] + 30:04d}.png').save('tv_menu.jpg')
+Image.open(f'tv/tv_{max(1, B["MENU_ON"] + 30):04d}.png').save('tv_menu.jpg')
 print('tv frames', N)

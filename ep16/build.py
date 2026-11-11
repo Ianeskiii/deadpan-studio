@@ -1,7 +1,7 @@
-"""Tube Town - When you finally have free time to play games.
+"""Tube Town - When you finally have free time to play games.   v2 (11.5 s cut; v1 = 21.7 s version, see git history)
 usage: cd ep16 && python3 build.py SHOT OUTDIR [opts]
-  SHOT = A B C E F G   (film shots)  |  QA (print beats, write beats.json)
-Pipeline: build.py QA -> tv.py -> render.sh -> overlays.py -> audio.py -> assemble.py
+  SHOT = A C E G   (film shots)  |  QA (print beats, write beats.json)
+Pipeline: vo16.py -> build.py QA -> tv.py -> render.sh -> overlays.py -> audio.py -> assemble.py
 Room, couch, lighting and Doug's seated legs are the ep14 (Front Camera v2) set-up.
 """
 import os, sys, json, math
@@ -26,23 +26,21 @@ FPS = 30
 
 # ============================================================ BEATS (frames, 30 fps)
 SH = dict(
-    A=(1, 112),       # medium-wide: drags himself in, drops the bag by the couch, sees the console -> perks up (small smile)
-    B=(113, 205),     # medium: crosses to the couch, plops down, grabs the controller, presses the power button (TV/console wake)
-    C=(206, 258),     # over the shoulder: boot logo -> the menu (NEW GAME), he leans in, thumbs ready
-    #  259-290          black card "15 MINUTES LATER..." (assemble.py)
-    E=(291, 420),     # medium close-up: fighting sleep - heavy lids, slow blinks, head droops, catches himself, thumb hovers
-    F=(421, 510),     # closer, other side: one last try, eyes close, head tilts, grip relaxes. Silence before the cut.
-    G=(511, 640),     # WIDE reveal: asleep, controller in his hands, NEW GAME on the TV. FAHHH on the cut, pause, snoring
+    A=(1, 66),        # 0.0-2.2  medium close-up, already seated, controller in hand, menu on: happy inhale, "hah", "FINALLY!", leans in
+    C=(67, 96),       # 2.2-3.2  over the shoulder: LANTERN HOLLOW menu; he re-grips, thumb moves toward the buttons (never presses)
+    #  97-114           3.2-3.8  hard-cut black card "3 MINUTES LATER..." (assemble.py)
+    E=(115, 204),     # 3.8-6.8  medium close-up: heavy lids, slow blink, droop, catches himself, looks at the TV, eyes close, tilt, relax
+    G=(205, 345),     # 6.8-11.5 WIDE reveal: asleep, controller in his hands, NEW GAME on the TV. Vine boom on the cut, snoring from 8.2
 )
-N = 650               # 641-650 black
-WALK1 = (1, 46); DROP = 50; BAG_LAND = 58; NOTICE = 64; PERK = (70, 82)
-WALK2 = (113, 134); TURN = (134, 142); SIT = (142, 154)
-REACH = (158, 168); LIFT = (168, 180); NJOIN = (172, 180); PRESS = 188; BOOT = (188, 213); MENU_ON = 214; LEAN = (222, 238)
-CARD = (259, 290)
-DROOP = (322, 356); CATCH = 360; HOVER = (382, 402)
-TRY = (424, 438); CLOSE = (440, 478); TILT = (452, 492); RELAX = (476, 500); ASLEEP = 496; SILENCE = (497, 510); SNORE0 = 548      # first snore inhale (0.3 s after the FAHHH ends)
-REVEAL = 511
-G_BLACK = 641
+N = 345
+VO_F = 10                                   # vo/c.wav starts here (inhale 0.30 s, "hah" exhale, "Finally!")
+INHALE = (10, 19); HAH = (20, 30); FIN = (33, 54)
+REGRIP = (68, 80); THUMB = (80, 92); LEAN = (70, 92)
+CARD = (97, 114)
+HEAVY = (115, 128); SLOWBLINK = 131; DROOP = (138, 158); CATCH = (160, 167); LOOK = (167, 178); CLOSE = (178, 194)
+TILT = (182, 204); RELAX = (188, 204); ASLEEP = 198
+REVEAL = 205; SNORE0 = 247                  # first snore inhale at 8.2 s (the boom has decayed by ~7.97 s)
+BOOT = (-60, -40); MENU_ON = -30; PRESS = -20   # v2: the console and the menu are already on at frame 1
 
 # ============================================================ LIVING ROOM (ep14: evening, lamp-lit)
 tina['root'].location = (-80, 0, 0)
@@ -188,35 +186,20 @@ H1 = heading(D_START, D_STOP); H2 = heading(D_STOP, D_FRONT)
 H_NOTICE = heading(D_STOP, CONS + V(0, 0, 0)) + 8          # body turns most of the way to the console/TV
 swing_tired = lambda f, ph: {'N': ((-0.36, 0.07 * math.sin(ph), 0.05), ('auto', (-1, 0.3, 0))), 'P': CARRY_P}
 swing_brisk = lambda f, ph: {'N': ((-0.37, 0.11 * math.sin(ph), 0.07), ('auto', (-1, 0.3, 0))), 'P': ((0.37, -0.11 * math.sin(ph), 0.07), ('auto', (1, 0.3, 0)))}
-doug_r.walk(WALK1[0], WALK1[1], (D_START.x, D_START.y), (D_STOP.x, D_STOP.y), H1, steps=3.4, arms=swing_tired, lean=9, bob=0.025, lift=0.05, sway=3, crouch=0.015)
-doug_r.walk(WALK2[0], WALK2[1], (D_STOP.x, D_STOP.y), (D_FRONT.x, D_FRONT.y), H2, steps=3.0, arms=swing_brisk, lean=3, bob=0.035, sway=4)
-WALKING = set(range(WALK1[0], WALK1[1] + 1)) | set(range(WALK2[0], WALK2[1] + 1))
+WALKING = set()
 
-def root_of(f):
-    """(position, heading) for the frames walk() doesn't drive"""
-    if f <= SH['A'][1]:
-        return D_STOP, ease_tab([(WALK1[1], H1), (NOTICE + 2, H1), (NOTICE + 10, H_NOTICE)], f)
-    if f < TURN[0]: return D_FRONT, H2
-    if f < SIT[0]: return D_FRONT, ease_tab([(TURN[0], H2), (TURN[1], 0.0)], f)
-    s = smooth((f - SIT[0]) / (SIT[1] - SIT[0]))
-    return D_FRONT.lerp(SEATED, s), 0.0
-def sit_amt(f): return 0.0 if f < SIT[0] else smooth((f - SIT[0]) / (SIT[1] - SIT[0]))
+def root_of(f): return SEATED, 0.0          # v2: seated on the couch the whole time
+def sit_amt(f): return 1.0
 
 ROLL = float(os.environ.get('ROLL', '9'))      # head tilt asleep (- = to his left)
-# posture: (lean fwd deg, roll deg, lift) - seated keys; A uses its own
-POST = [(SIT[1], (0, 0, 0.0)), (LEAN[0], (0, 0, 0.0)), (LEAN[1], (4, 0, 0.0)), (CARD[0], (4, 0, 0.0)),
-        (SH['E'][0], (1, 0, -0.015)), (DROOP[0], (1.5, 0, -0.018)), (DROOP[1], (11, 2.5, -0.03)), (CATCH, (11, 2.5, -0.03)),
-        (CATCH + 4, (-2, 0, -0.008)), (CATCH + 16, (0.5, 0, -0.014)), (SH['E'][1], (2, 0.5, -0.018)), (TRY[1], (3, 0.5, -0.016)),
-        (TILT[0], (3.5, 0.5, -0.02)), (TILT[1], (13, ROLL, -0.035)), (N, (13, ROLL, -0.035))]
-def posture(f):
-    if f <= SH['A'][1]:
-        lean = ease_tab([(WALK1[1], 9), (PERK[0], 9), (PERK[1], 0)], f); lift = ease_tab([(WALK1[1], -0.015), (PERK[0], -0.015), (PERK[1], 0.02)], f)
-        return lean, 0.0, lift
-    if f < SIT[0]: return 2.0, 0.0, 0.0
-    if f <= SIT[1]:
-        s = (f - SIT[0]) / (SIT[1] - SIT[0])
-        return -5 * math.sin(math.pi * s), 0.0, -0.06 * math.sin(math.pi * min(1, s * 1.15))       # plops back onto the cushion
-    return ease_tab(POST, f)
+# posture: (lean fwd deg, roll deg, lift)
+POST = [(1, (1, 0, 0.0)), (INHALE[0], (1, 0, 0.0)), (INHALE[1], (-1.5, 0, 0.014)), (HAH[1], (0, 0, 0.006)),     # inhale: chest up; "hah": settles
+        (FIN[0], (0.5, 0, 0.006)), (FIN[0] + 12, (6, 0, 0.012)), (SH['A'][1], (6.5, 0, 0.012)),                  # FINALLY: leans in
+        (LEAN[0], (6.5, 0, 0.012)), (LEAN[1], (9, 0, 0.012)), (CARD[0], (9, 0, 0.012)),                           # OTS: further in, ready
+        (SH['E'][0], (2, 0, -0.016)), (HEAVY[1], (3, 0, -0.018)), (DROOP[0], (3, 0, -0.018)),                    # 3 min later: sagging
+        (DROOP[1], (11, 2.5, -0.03)), (CATCH[0], (11.5, 2.5, -0.03)), (CATCH[1], (1, 0, -0.012)),                 # droops ... catches himself
+        (LOOK[1], (2, 0.5, -0.016)), (TILT[0], (3, 0.5, -0.02)), (TILT[1], (13, ROLL, -0.035)), (N, (13, ROLL, -0.035))]
+def posture(f): return ease_tab(POST, f)
 def breath(f):
     if f >= ASLEEP: return 0.006 * math.sin(2 * math.pi * (f - SNORE0) / 66 - math.pi / 2)      # slow sleep breathing; inhales start at SNORE0 + 66k
     return 0.0025 * math.sin(2 * math.pi * f / 105)
@@ -230,8 +213,10 @@ C_LOW = (V(0.0, -0.49, 0.75), cq(-36))
 C_DROOP = (V(0.02, -0.48, 0.70), cq(-28, 0, -6))
 C_JERK = (V(0.0, -0.50, 0.79), cq(-44))
 C_LAP = (V(0.05, -0.45, 0.645), cq(-14, -6, 10))
-C_KEYS = [(1, C_CUSH), (LIFT[0], C_CUSH), (LIFT[1], C_HOLD), (LEAN[0], C_HOLD), (LEAN[1], C_FWD), (CARD[0], C_FWD),
-          (SH['E'][0], C_LOW), (DROOP[0], C_LOW), (DROOP[1], C_DROOP), (CATCH, C_DROOP), (CATCH + 4, C_JERK), (CATCH + 18, C_LOW),
+C_EXC = (V(0.0, -0.52, 0.82), cq(-44))                       # FINALLY: up a touch with the lean
+C_REG = (V(0.01, -0.51, 0.835), cq(-50, 4, -5))               # re-grip: a little lift and wiggle
+C_KEYS = [(1, C_HOLD), (FIN[0], C_HOLD), (FIN[0] + 12, C_EXC), (REGRIP[0], C_EXC), (REGRIP[0] + 5, C_REG), (REGRIP[1], C_FWD), (CARD[0], C_FWD),
+          (SH['E'][0], C_LOW), (DROOP[0], C_LOW), (DROOP[1], C_DROOP), (CATCH[0], C_DROOP), (CATCH[1], C_JERK), (LOOK[1], C_LOW),
           (RELAX[0], C_LOW), (RELAX[1], C_LAP), (N, C_LAP)]
 def ctrl_pose(f):
     for (fa, (pa, qa)), (fb, (pb, qb)) in zip(C_KEYS, C_KEYS[1:]):
@@ -259,35 +244,22 @@ def to_local(w, f): return upper_matrix(f).inverted() @ V(*w)
 def down_world(side, f): return upper_matrix(f) @ V(*DOWN[side][0])
 def grip_w(side, f): return CM(f) @ GRIP[side]
 def hand_world(side, f):
-    if f < REACH[0]: return down_world(side, f)
-    if side == 'P':
-        if f < REACH[1]: return mix(down_world('P', f), grip_w('P', f), (f - REACH[0]) / (REACH[1] - REACH[0]))
-        g = grip_w('P', f)
-        if PRESS - 4 <= f <= PRESS + 4:            # thumb goes to the home button: the fist dips onto the middle of the pad
-            a = 1 - abs(f - PRESS) / 4.0; return g.lerp(CM(f) @ (CTL_BTN + V(0.03, 0.03, 0.02)), smooth(a))
-        if HOVER[0] <= f <= HOVER[1] + 8 or TRY[0] <= f <= CLOSE[0] + 20:     # hovering over START, never pressing it
-            if f <= HOVER[1] + 8: a = smooth((f - HOVER[0]) / 6) * (1 - smooth((f - HOVER[1]) / 8))
-            else: a = smooth((f - TRY[0]) / 8) * (1 - smooth((f - CLOSE[0] - 8) / 12))
-            hov = CM(f) @ (CTL_BTN + V(0.035, 0.035, 0.065 + 0.006 * math.sin(f * 0.5)))
-            return g.lerp(hov, a)
-        return g
-    if f < NJOIN[0]: return down_world('N', f)
-    if f < NJOIN[1]: return mix(down_world('N', f), grip_w('N', f), (f - NJOIN[0]) / (NJOIN[1] - NJOIN[0]))
-    return grip_w('N', f)
+    g = grip_w(side, f)
+    if side == 'P' and THUMB[0] <= f <= CARD[0] + 2:     # thumb moves over toward the buttons ... and stays there, ready. Never presses.
+        a = smooth((f - THUMB[0]) / 8)
+        hov = CM(f) @ (CTL_BTN + V(0.035, 0.03, 0.06 + 0.004 * math.sin(f * 0.6)))
+        return g.lerp(hov, a)
+    if side == 'N' and REGRIP[0] <= f <= REGRIP[1]:      # left hand slides along the grip as he re-seats it
+        return g + (CM(f).to_3x3() @ V(0.0, -0.025, 0.0)) * math.sin(math.pi * (f - REGRIP[0]) / (REGRIP[1] - REGRIP[0]))
+    return g
 
 for f in range(1, N + 1):
-    if f in WALKING:
-        if f <= WALK1[1] or f >= WALK2[0]:   # walk() already posed these; legs stay walk legs
-            continue
     p, h = root_of(f)
     doug_r.place(f, (p.x, p.y), h)
     lean, roll, lift = posture(f); br = breath(f)
     arms = {}
     for s_ in ('N', 'P'):
-        if f <= SH['A'][1]:
-            arms[s_] = CARRY_P if (s_ == 'P' and f < DROP) else DOWN[s_]
-        else:
-            arms[s_] = (tuple(to_local(hand_world(s_, f), f)), ('auto', ((-1 if s_ == 'N' else 1), 0.15, -0.5)))
+        arms[s_] = (tuple(to_local(hand_world(s_, f), f)), ('auto', ((-1 if s_ == 'N' else 1), 0.15, -0.5)))
     sq = 1 + br * (2.0 if f >= ASLEEP else 1.0)
     doug_r.pose(f, up=(0, 0, lift + br * 0.4), rot=(lean, roll, 0), sq=sq, arms=arms, legs=STAND)
     s = sit_amt(f)
@@ -303,26 +275,8 @@ for f in range(1, N + 1):
             doug_r.key_points(doug_r.leg[s_], f, (hip, knee, foot))
             doug_r.foot[s_].location = foot + V(0, -0.035, 0.03); doug_r.foot[s_].keyframe_insert('location', frame=f)
 
-# the bag: in his right hand, dropped by the couch's arm, lands, tips a little
-scene.frame_set(1)
-BAG_FLOOR = None
-def hand_P_world(f):
-    scene.frame_set(f); return doug_r.hand['P'].matrix_world.translation.copy()
-drop_from = None
-for f in range(1, N + 1):
-    if f < DROP:
-        hp = hand_P_world(f); _, hd = root_of(f) if f > WALK1[1] else (None, H1)
-        bag.location = hp - BAG_HANDLE - V(0, 0, 0.03); bag.rotation_euler = (0, 0, D(hd - 90 + 8 * math.sin(f * 0.35)))
-        drop_from = (bag.location.copy(), hd)
-    else:
-        p0, hd = drop_from
-        land = V(p0.x, p0.y, 0.14)
-        t = min(1.0, (f - DROP) / (BAG_LAND - DROP))
-        z = p0.z + (land.z - p0.z) * t * t
-        tip = 0 if f < BAG_LAND else 14 * smooth((f - BAG_LAND) / 6) - 3 * math.sin(min(1, (f - BAG_LAND) / 8) * math.pi)
-        bag.location = V(p0.x, p0.y, z); bag.rotation_euler = (D(-tip), 0, D(hd - 90))
-        if f >= BAG_LAND: bag.location.z = 0.14 - 0.02 * smooth((f - BAG_LAND) / 6)
-    bag.keyframe_insert('location', frame=f); bag.keyframe_insert('rotation_euler', frame=f)
+# the work bag: already dropped by the couch's arm (where it landed in v1) - just set dressing now
+bag.location = V(-1.349, -0.266, 0.12); bag.rotation_euler = (D(-14), 0, D(H1 - 90))
 
 # ============================================================ FACE: eyes, lids, brows, smile, sleepy mouth
 D_LIDS = [o for o in bpy.data.objects if o.name.startswith('doug_lid')]
@@ -337,27 +291,33 @@ def mouth_shape(f, sm):
     for p, x in zip(msp.points, MX):
         u = x / 0.036; z = 0.02 * sm * (u * u - 0.35)          # corners up, middle down a touch
         p.co = (-z, 0.32 - math.sqrt(0.32 ** 2 - x * x), x, 1.0); p.keyframe_insert('co', frame=f)
-LID = [(1, 34), (NOTICE, 34), (NOTICE + 4, 26), (PERK[0], 28), (PERK[1], 8), (SH['A'][1], 10), (SIT[1], 12), (MENU_ON, 6), (CARD[0], 8),
-       (SH['E'][0], 40), (DROOP[0] - 6, 48), (DROOP[1], 80), (CATCH, 82), (CATCH + 3, 14), (CATCH + 14, 22), (SH['E'][1], 50),
-       (TRY[1], 52), (CLOSE[0], 56), (CLOSE[0] + 14, 78), (CLOSE[0] + 20, 66), (CLOSE[1], 95), (N, 95)]
-BLINKS = [(24, 4), (109, 2), (MENU_ON + 12, 3), (300, 9), (334, 10), (412, 10)]      # tired = slow blinks
-BROW = [(1, (-0.012, -6)), (PERK[0], (-0.012, -6)), (PERK[1], (0.02, 4)), (SH['A'][1], (0.015, 3)), (SIT[1], (0.01, 2)), (MENU_ON, (0.02, 4)),
-        (CARD[0], (0.012, 2)), (SH['E'][0], (-0.004, -3)), (DROOP[1], (-0.012, -6)), (CATCH, (-0.012, -6)), (CATCH + 3, (0.025, 5)),
-        (CATCH + 20, (0.005, 0)), (CLOSE[1], (-0.012, -5)), (N, (-0.012, -5))]
-SMILE = [(1, 0.0), (PERK[0] + 2, 0.0), (PERK[1] + 4, 1.0), (SH['A'][1], 1.0), (SIT[1], 0.6), (MENU_ON, 0.6), (MENU_ON + 8, 1.0),
-         (CARD[0], 1.0), (SH['E'][0], 0.0), (N, 0.0)]
+LID = [(1, 8), (INHALE[0], 8), (INHALE[1], 0), (HAH[1], 4), (FIN[0], 2), (FIN[0] + 8, -10), (SH['A'][1], -8),      # eyes brighten on FINALLY
+       (LEAN[0], -6), (CARD[0], 0),
+       (SH['E'][0], 22), (HEAVY[1], 29), (DROOP[0], 30), (DROOP[1], 80), (CATCH[0], 82), (CATCH[1], 12), (LOOK[0] + 4, 18),     # heavy ... droop ... caught
+       (LOOK[1], 26), (CLOSE[0] + 6, 52), (CLOSE[0] + 9, 44), (CLOSE[1], 95), (N, 95)]                                      # tries to look; eyes close
+BLINKS = [(62, 2), (SLOWBLINK, 8)]                # one quick blink after FINALLY; one slow heavy blink 3 min later
+BROW = [(1, (0.012, 2)), (INHALE[0], (0.012, 2)), (INHALE[1], (0.026, 6)), (HAH[1], (0.02, 4)), (FIN[0] + 8, (0.03, 7)), (SH['A'][1], (0.024, 5)),
+        (CARD[0], (0.018, 4)), (SH['E'][0], (-0.006, -3)), (DROOP[1], (-0.012, -6)), (CATCH[0], (-0.012, -6)), (CATCH[1], (0.022, 5)),
+        (LOOK[1], (0.004, 0)), (CLOSE[1], (-0.012, -5)), (N, (-0.012, -5))]
+SMILE = [(1, 0.55), (INHALE[0], 0.55), (HAH[0], 0.9), (FIN[0], 1.0), (SH['A'][1], 1.0), (CARD[0], 0.85), (SH['E'][0], 0.0), (N, 0.0)]
+# lip-sync from the take (vo/c.wav, placed at VO_F): breath spans drawn by hand, "Finally!" from its loudness
+import soundfile as _sf
+_a, _sr = _sf.read(os.path.join(HERE, 'vo', 'c.wav')); _hop = _sr // 30
+_rms = np.array([np.sqrt(np.mean(_a[i:i + _hop] ** 2)) for i in range(0, len(_a) - _hop, _hop)]); _rms /= _rms.max()
+MOUTH_O = {}; _prev = 0.0
+for i, r_ in enumerate(_rms):
+    f_ = VO_F + i; o = max(0.0, min(1.0, (r_ - 0.06) / 0.5)); o = o if o > _prev else _prev * 0.5 + o * 0.5; _prev = o
+    if INHALE[0] <= f_ <= INHALE[1]: o = max(o, 0.14 * math.sin(math.pi * (f_ - INHALE[0]) / (INHALE[1] - INHALE[0])))     # breath in, lips parted
+    if HAH[0] <= f_ <= HAH[1]: o = max(o, 0.42 * math.sin(math.pi * (f_ - HAH[0]) / (HAH[1] - HAH[0])) ** 0.7)              # "hah": open, smiling
+    MOUTH_O[f_] = o
 def blink_amt(f):
     for b_, dur in BLINKS:
         if abs(f - b_) <= dur: return 1 - abs(f - b_) / (dur + 1)
     return 0.0
 TVC = tvw(V(0, TVY, TVZ - 0.05))
 def gaze(f):
-    if f < NOTICE: return root_matrix(f) @ V(0, -2.0, 1.2)
-    if f <= SH['A'][1]: return CONS + V(0, 0, 0.25) if f < NOTICE + 20 else TVC.lerp(CONS + V(0, 0, 0.25), 0.4)
-    if f < TURN[0]: return root_matrix(f) @ V(0, -2.0, 1.2)
-    if REACH[0] - 4 <= f < LIFT[1] - 2: return CM(f).translation
-    if HOVER[0] <= f <= HOVER[1]: return CM(f) @ CTL_BTN if f < HOVER[0] + 12 else TVC
-    if f >= DROOP[0] and f < CATCH: return TVC.lerp(CM(f).translation, smooth((f - DROOP[0]) / (DROOP[1] - DROOP[0])) * 0.7)
+    if REGRIP[0] <= f < REGRIP[0] + 9: return CM(f).translation            # a glance down at his hands while re-gripping
+    if f >= DROOP[0] and f < CATCH[1]: return TVC.lerp(CM(f).translation, smooth((f - DROOP[0]) / (DROOP[1] - DROOP[0])) * 0.7)
     return TVC
 for f in range(1, N + 1):
     scene.frame_set(f)
@@ -378,7 +338,8 @@ for f in range(1, N + 1):
     mouth_shape(f, sm)
     op = 0.0
     if f >= ASLEEP: op = 0.18 + 0.1 * max(0.0, math.sin(2 * math.pi * (f - SNORE0) / 66))        # mouth hangs a little open, asleep
-    mouth.scale = (1 + 1.6 * op, 1, 1 - 0.08 * sm); mouth.keyframe_insert('scale', frame=f)
+    o = MOUTH_O.get(f, 0.0)                                                                       # talking: the mouth opens taller
+    mouth.scale = (1 + 1.6 * op + 2.3 * o, 1, (1 - 0.08 * sm) * (1 + 0.12 * o)); mouth.keyframe_insert('scale', frame=f)
 
 # ============================================================ CAMERAS
 EYE = lambda f: upper_matrix(f) @ V(0, -0.2, doug_r.ez - 0.05)
@@ -386,22 +347,17 @@ def cam_for(f):
     """-> (location, target, lens, fstop, focus point)"""
     if os.environ.get('CAMO'):     # QA: any framing "x,y,z,tx,ty,tz,lens"
         v = [float(x) for x in os.environ['CAMO'].split(',')]; return V(*v[:3]), V(*v[3:6]), v[6], 8.0, V(*v[3:6])
-    if f <= SH['A'][1]:        # medium-wide from the TV side: he comes in from the left, the console is just behind camera
-        t = smooth((f - 1) / 111)
-        return V(0.5, -1.22, 1.34).lerp(V(0.42, -1.16, 1.32), t), V(-1.4, -0.55, 0.98).lerp(V(-1.2, -0.6, 1.02), t), 20, 5.6, EYE(f)
-    if f <= SH['B'][1]:        # medium from the front-right: the cross to the couch, the plop, the controller
-        # V1 cam (0.55,-1.13) had him walk almost through the lens; now from the front-left, panning with him to the couch
-        t = smooth((f - SH['B'][0]) / 37)
-        return V(-0.95, -1.97, 1.62), V(-0.62, -0.48, 0.92).lerp(V(-0.25, -0.35, 0.9), t), 18, 5.6, EYE(f)
+    if f <= SH['A'][1]:        # medium close-up from his left-front: face (lip-sync) and the controller, a slow push in
+        if os.environ.get('ACAM'):
+            v = [float(x) for x in os.environ['ACAM'].split(',')]; return V(*v[:3]), V(*v[3:6]), v[6], 4.0, EYE(f)
+        t = smooth((f - 1) / 65)
+        return V(-0.5, -1.5, 1.34).lerp(V(-0.46, -1.43, 1.33), t), V(0.0, -0.2, 1.16), 24, 4.0, EYE(f)
     if f <= SH['C'][1]:        # over his right shoulder at the TV
-        t = smooth((f - SH['C'][0]) / 52)
-        return V(0.86, 0.82, 1.66).lerp(V(0.82, 0.72, 1.62), t), V(-0.2, -1.95, 1.0), 26, 8.0, V(0, -1.9, 1.1)
-    if f <= SH['E'][1]:        # medium close-up: face down to the controller
-        t = smooth((f - SH['E'][0]) / 129)
-        return V(0.2, -1.3, 1.34).lerp(V(0.17, -1.22, 1.32), t), V(0.0, -0.2, 1.24), 22, 4.0, EYE(f)
-    if f <= SH['F'][1]:        # closer, from his left
-        t = smooth((f - SH['F'][0]) / 89)
-        return V(-0.5, -1.5, 1.34).lerp(V(-0.46, -1.42, 1.32), t), V(0.0, -0.2, 1.2), 25, 4.0, EYE(f)
+        t = smooth((f - SH['C'][0]) / 29)
+        return V(0.86, 0.82, 1.66).lerp(V(0.83, 0.75, 1.63), t), V(-0.2, -1.95, 1.0), 26, 8.0, V(0, -1.9, 1.1)
+    if f <= SH['E'][1]:        # medium close-up: face down to the controller (v1 shot E framing), slow creep in
+        t = smooth((f - SH['E'][0]) / 89)
+        return V(0.2, -1.3, 1.34).lerp(V(0.17, -1.22, 1.32), t), V(0.0, -0.2, 1.22), 22, 4.0, EYE(f)
     # WIDE reveal: high, behind-right of the couch - Doug asleep in the foreground, NEW GAME on the TV beyond him
     if os.environ.get('GCAM'):
         v = [float(x) for x in os.environ['GCAM'].split(',')]; return V(*v[:3]), V(*v[3:6]), v[6], 8.0, V(0, -0.3, 1.0)
@@ -414,11 +370,11 @@ def cam_setup(name):
         key(cam_data, 'lens', f, lens); key(cam_data.dof, 'aperture_fstop', f, fs)
 
 if SHOT == "QA":
-    json.dump({'SH': SH, 'N': N, 'WALK1': WALK1, 'DROP': DROP, 'BAG_LAND': BAG_LAND, 'NOTICE': NOTICE, 'PERK': PERK, 'WALK2': WALK2,
-               'TURN': TURN, 'SIT': SIT, 'REACH': REACH, 'LIFT': LIFT, 'PRESS': PRESS, 'BOOT': BOOT, 'MENU_ON': MENU_ON, 'LEAN': LEAN,
-               'CARD': CARD, 'DROOP': DROOP, 'CATCH': CATCH, 'HOVER': HOVER, 'TRY': TRY, 'CLOSE': CLOSE, 'TILT': TILT, 'RELAX': RELAX,
-               'ASLEEP': ASLEEP, 'SNORE0': SNORE0, 'SILENCE': SILENCE, 'REVEAL': REVEAL, 'G_BLACK': G_BLACK}, open(os.path.join(HERE, 'beats.json'), 'w'), indent=1)
-    for f in (20, 112, 154, 200, 300, 500, 600):
+    json.dump({'SH': SH, 'N': N, 'VO_F': VO_F, 'INHALE': INHALE, 'HAH': HAH, 'FIN': FIN, 'REGRIP': REGRIP, 'THUMB': THUMB, 'LEAN': LEAN,
+               'CARD': CARD, 'HEAVY': HEAVY, 'DROOP': DROOP, 'CATCH': CATCH, 'LOOK': LOOK, 'CLOSE': CLOSE, 'TILT': TILT, 'RELAX': RELAX,
+               'ASLEEP': ASLEEP, 'SNORE0': SNORE0, 'REVEAL': REVEAL, 'BOOT': BOOT, 'MENU_ON': MENU_ON, 'PRESS': PRESS},
+              open(os.path.join(HERE, 'beats.json'), 'w'), indent=1)
+    for f in (1, 45, 85, 120, 150, 165, 204, 300):
         scene.frame_set(f)
         print(f, 'feet', [tuple(round(x, 3) for x in doug_r.foot[s].matrix_world.translation) for s in ('N', 'P')],
               'hands', [tuple(round(x, 3) for x in doug_r.hand[s].matrix_world.translation) for s in ('N', 'P')],
