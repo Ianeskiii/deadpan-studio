@@ -17,20 +17,27 @@ def smooth(t): t = max(0.0, min(1.0, t)); return t * t * (3 - 2 * t)
 FPS = 30
 
 # ============================================================ BEATS (frames, 30 fps)
+# v3 (comedy): three FAHHH reveals - low angle (the accident), too close, the worst - with one normal angle in between.
+# Shots A and F (and their frame numbers) are untouched from v2, so the opening and the blanket ending stay exactly as they were.
 B = dict(
     A=(1, 40),          # medium: scrolling on the couch
-    B=(41, 110),        # POV close-up of the phone: feed -> accidental tap on the camera icon -> front camera (he keeps swiping, unaware)
-    C=(111, 180),       # reaction close-up: eyes slowly widen, drift off, one blink, back to the screen
-    D=(181, 216),       # v2 final: three-quarter medium - he physically raises the phone from chest to eye level
-    DP=(217, 300),      # v2 final: his POV - the normal angle, then a slow lower (phone sinks in frame), the bad angle returns, pause
-    E=(301, 335),       # close-up: silent disappointment
+    B=(41, 77),         # POV of the phone: feed -> accidental tap -> camera zooms open -> LOW selfie (FAHHH 1); the selfie's eyes pop
+    C=(78, 122),        # face close-up: head jerks back, wide eyes, hold the shock, then he starts examining the phone
+    D=(123, 150),       # three-quarter medium (left): he raises the phone to eye level
+    DP=(151, 185),      # his POV: the normal selfie; on screen his face relaxes (relief). No sound.
+    D2=(186, 212),      # medium (right): he brings the phone in close to his face, tilted
+    S2=(213, 238),      # POV: TOO CLOSE fish-eye selfie (FAHHH 2); he flinches on screen
+    D3=(239, 262),      # medium (front, the opening framing): last try - phone down at his belly, tipped sideways
+    S3=(263, 280),      # POV: the worst one (FAHHH 3, cut off hard); he freezes, eyes at their widest
+    E=(281, 335),       # face close-up: frozen stare, 0.5 s of dead silence, the lids slowly sink back to deadpan
     F=(336, 465),       # wide: screen off, phone face down, stillness, blanket over the head, hold
 )
+REVEALS = [73, 213, 263]          # the frames each bad selfie first appears = FAHHH onsets (73: camera fully open)
 N = 474                 # 466-474 black
 SWIPES = [8, 22, 50]
 TAP_CAM = 66            # accidental tap: his thumb comes down for the next swipe and lands on the camera icon
 CAM_ON = 69             # camera app opens (activation sound)
-SWIPE_CAM = 80          # one more lazy swipe on the camera view: nothing scrolls (he hasn't noticed yet)
+SWIPE_CAM = None        # v3: no lazy swipe - he sees it at once
 TAP_OFF = 342           # screen off
 SCREEN_OFF = 343
 PUT_DOWN = 370          # phone lands face down on the cushion
@@ -105,7 +112,7 @@ FOOT_L = {'N': V(-0.19, -0.51, 0.03), 'P': V(0.19, -0.51, 0.03)}
 ROOT = V(0, 0.05, 0)
 doug_r.place(1, (ROOT.x, ROOT.y), 0)
 UP0 = V(0, 0, doug_r.base)
-def to_local(w, up=V(0, 0, 0)): return V(*w) - ROOT - UP0 - up       # upper body never rotates in this short
+def to_local(w, up=V(0, 0, 0), rx=0.0): return Matrix.Rotation(D(-rx), 3, 'X') @ (V(*w) - ROOT - UP0 - up)   # v3: undo the startle tilt
 def to_world(l, up=V(0, 0, 0)): return V(*l) + ROOT + UP0 + up
 LAP = {'N': V(-0.19, -0.42, 0.19), 'P': V(0.19, -0.42, 0.19)}       # hands resting on top of the (now visible) thighs
 scene.frame_set(1)
@@ -119,21 +126,39 @@ def aim_quat(p, tgt):
 LOW = (V(0.05, -0.56, 0.96), None)
 HIGH = (V(0.12, -0.80, 1.48), None)      # v2 final: true eye level (eyes at z 1.456), a little to his right so it clears his face
 LOW = (LOW[0], aim_quat(LOW[0], EYE_C)); HIGH = (HIGH[0], aim_quat(HIGH[0], EYE_C))
+def posed(p, roll=0.0, tgt=None):     # v3: aim the screen at his eyes, then roll it about the screen normal (a tilted phone)
+    q = aim_quat(p, tgt if tgt is not None else EYE_C) @ Quaternion(V(0, 1, 0), D(roll)); return (p, q)
+_cl = os.environ.get('CLOSEP'); _wo = os.environ.get('WORSTP')     # QA: try poses "x,y,z,roll"
+CLOSE = posed(*( [V(*[float(v) for v in _cl.split(',')[:3]]), float(_cl.split(',')[3])] if _cl else [V(0.06, -0.50, 1.12), 22]))   # too close, under the chin
+WORST = posed(*( [V(*[float(v) for v in _wo.split(',')[:3]]), float(_wo.split(',')[3])] if _wo else [V(0.05, -0.54, 0.70), 34]))     # belly cam, tipped
 MIDP = V(0.46, -0.38, 0.72)
 SEATP = V(0.62, -0.06, SEAT + 0.007)
 SEATQ = Matrix(((-1, 0, 0), (0, 0, 1), (0, 1, 0))).transposed().to_quaternion()   # columns lx=-X, ly=+Z (back up), lz=+Y
 MIDQ = LOW[1].slerp(SEATQ, 0.6)
-RAISE, LOWER = (190, 212), (238, 268)     # v2 final: one clear comparison (v1 did it twice): raise, hold, slow lower, pause
-PH_KEYS = [(1, LOW), (RAISE[0], LOW), (RAISE[1], HIGH), (LOWER[0], HIGH), (LOWER[1], LOW),
-           (346, LOW), (362, (MIDP, MIDQ)), (PUT_DOWN, (SEATP, SEATQ)), (N, (SEATP, SEATQ))]
+RAISE, TOCLOSE, TOWORST, BACK = (127, 145), (189, 206), (242, 258), (298, 330)   # v3 phone moves (BACK: off screen, during the stare)
+LOWER = TOCLOSE
+PH_KEYS = [(1, LOW), (RAISE[0], LOW), (RAISE[1], HIGH), (TOCLOSE[0], HIGH), (TOCLOSE[1], CLOSE), (TOWORST[0], CLOSE), (TOWORST[1], WORST),
+           (BACK[0], WORST), (BACK[1], LOW), (346, LOW), (362, (MIDP, MIDQ)), (PUT_DOWN, (SEATP, SEATQ)), (N, (SEATP, SEATQ))]
+# startles: (frame, peak offset frames, settle frames, body tilt back deg, body lift, phone jolt)
+STARTLES = [(74, 6, 22, -7.5, 0.024, V(0.0, -0.03, 0.012)), (215, 4, 14, -3.0, 0.010, V(0.0, -0.025, 0.0)),
+            (265, 3, 30, -2.5, 0.008, V(0.0, -0.02, 0.006))]
+def startle(f):
+    k = 0.0; out = []
+    for f0, pk, st, rot, lift, jolt in STARTLES:
+        if f0 <= f < f0 + pk: a = smooth((f - f0) / pk)
+        elif f0 + pk <= f < f0 + pk + st: a = 1 - smooth((f - f0 - pk) / st)
+        else: a = 0.0
+        out.append((a, rot, lift, jolt))
+    rot = sum(a * r for a, r, l, j in out); lift = sum(a * l for a, r, l, j in out); jolt = sum((j * a for a, r, l, j in out), V(0, 0, 0))
+    return rot, lift, jolt
 def phone_pose(f):
     for (fa, (pa, qa)), (fb, (pb, qb)) in zip(PH_KEYS, PH_KEYS[1:]):
         if fa <= f <= fb:
             t = smooth((f - fa) / max(1, fb - fa))
             p = pa.lerp(pb, t); q = qa.slerp(qb, t)
-            if f < RAISE[0]:      # small idle drift while scrolling / staring
-                p = p + V(0.004 * math.sin(f * 0.07), 0, 0.005 * math.sin(f * 0.05 + 1))
-            return p, q
+            if f < RAISE[0]:      # small idle drift while scrolling / staring (fades out before the raise)
+                p = p + V(0.004 * math.sin(f * 0.07), 0, 0.005 * math.sin(f * 0.05 + 1)) * (1 - smooth((f - 110) / 16))
+            return p + startle(f)[2], q
     return PH_KEYS[-1][1]
 def PM(f):
     p, q = phone_pose(f); m = q.to_matrix().to_4x4(); m.translation = p; return m
@@ -169,7 +194,12 @@ for f in range(1, N + 1):
     gl.color = col; gl.energy = en; gl.keyframe_insert('color', frame=f); gl.keyframe_insert('energy', frame=f)
 
 # ============================================================ BODY + HANDS
-def hold_P(f): return PM(f) @ V(0.03, 0.02, -0.182)          # right fist under the bottom edge (v2: lower, so the screen's bottom bar shows)
+def grip_side(f):     # v3: 0 = fist under the bottom edge, 1 = fingers round the right edge (when the phone is close to his body)
+    k = [(1, 0), (TOCLOSE[0], 0), (TOCLOSE[1], 1), (BACK[0], 1), (BACK[1], 0), (N, 0)]
+    for (fa, a), (fb, b) in zip(k, k[1:]):
+        if fa <= f <= fb: return a + (b - a) * smooth((f - fa) / max(1, fb - fa))
+    return 0
+def hold_P(f): return PM(f) @ V(0.03, 0.02, -0.182)    # v3: bottom-edge grip throughout (poses keep the fist 5 cm off his body)   # right fist under the bottom edge / on the side
 def cradle_N(f): return PM(f) @ V(-0.05, 0.025, -0.186)       # left hand also under the bottom edge
 ICON = V(-0.043, 0, -0.101)                                   # camera shortcut on the screen (screen.py: x=44, y=H-38)
 def tap_N(f, depth): return PM(f) @ (ICON + V(-0.004, -0.062 - 0.05 * depth, -0.012))
@@ -193,8 +223,8 @@ def hand_world(side, f):
             return mix(a, b, t) + V(0, 0, 0.08 * math.sin(math.pi * min(1, max(0, t))))
         return blanket_hand('P', f)
     # left hand
-    if f < 181:
-        for s in SWIPES + [SWIPE_CAM]:
+    if f < RAISE[0]:
+        for s in SWIPES:
             if s - 4 <= f < s: return mix(cradle_N(f), tap_N(f, 0.5), (f - s + 4) / 4)
             if s <= f < s + 6: return swipe_N(f, s)
             if s + 6 <= f < s + 11: return mix(swipe_N(f, s + 6 - 6), cradle_N(f), (f - s - 6) / 5)
@@ -202,22 +232,24 @@ def hand_world(side, f):
         if TAP_CAM < f <= TAP_CAM + 2: return tap_N(f, 0.0)
         if TAP_CAM + 2 < f <= TAP_CAM + 8: return mix(tap_N(f, 0.0), cradle_N(f), (f - TAP_CAM - 2) / 6)
         return cradle_N(f)
-    if f < 190: return mix(cradle_N(f), to_world(LAP['N']), (f - 181) / 9)
+    if f < RAISE[0] + 9: return mix(cradle_N(f), to_world(LAP['N']), (f - RAISE[0]) / 9)
     if f < TAP_OFF - 5: return to_world(LAP['N'])
     if f <= TAP_OFF: return mix(to_world(LAP['N']), tap_N(f, 0.0), (f - TAP_OFF + 5) / 5)
     if f < 398: return mix(tap_N(f, 0.0), to_world(LAP['N']), (f - TAP_OFF) / 8)
     return blanket_hand('N', f)
 def up_of(f):
     if 301 <= f: return V(0, 0, -0.015 * smooth((f - 303) / 20))     # a small sink with the disappointment
-    return V(0, 0, 0)
+    return V(0, 0, startle(f)[1])
+def rot_of(f): return startle(f)[0]                                  # v3: head/body jerks back (tilt about the seat)
 def bend_of(side, f):
     sx = -1 if side == 'N' else 1
     if f >= 398: return ('auto', (sx * 1, 0.2, -0.6))
     return ('auto', (sx * 1, 0.1, -0.5))
 for f in range(1, N + 1):
     up = up_of(f)
-    arms = {s: (tuple(to_local(hand_world(s, f), up)), bend_of(s, f)) for s in ('N', 'P')}
-    doug_r.pose(f, up=tuple(up), rot=(0, 0, 0), arms=arms, legs=SIT_LEGS)
+    rx = rot_of(f)
+    arms = {s: (tuple(to_local(hand_world(s, f), up, rx)), bend_of(s, f)) for s in ('N', 'P')}
+    doug_r.pose(f, up=tuple(up), rot=(rx, 0, 0), arms=arms, legs=SIT_LEGS)
     for s_ in ('N', 'P'):      # v2: override the rig's straight leg with the seated hip -> knee -> foot
         hip = V(0, 0, doug_r.base) + up + doug_r.hip_off[s_]
         doug_r.key_points(doug_r.leg[s_], f, (hip, KNEE_L[s_], FOOT_L[s_]))
@@ -227,7 +259,7 @@ for f in range(1, N + 1):
 D_LIDS = [o for o in bpy.data.objects if o.name.startswith('doug_lid')]
 AWAY = V(0.0, -2.0, 1.75)
 SACC = [(1, (0.0, 0.03)), (14, (-0.02, -0.01)), (27, (0.015, 0.035)), (44, (-0.01, 0.0)), (56, (0.02, 0.03)), (72, (-0.015, -0.03)),
-        (90, (0.0, 0.01)), (122, (0.015, 0.03)), (131, (-0.015, 0.025)), (140, (0.0, 0.0)), (176, (0.0, 0.0)),
+        (76, (0.0, 0.0)), (104, (0.02, 0.02)), (110, (-0.02, 0.03)), (116, (0.0, -0.01)), (176, (0.0, 0.0)),
         (305, (0.0, 0.0)), (313, (0.012, 0.0)), (322, (-0.008, -0.01)), (N, (-0.008, -0.01))]
 def sacc(f):      # small eye movements over the phone (reading the feed, then checking the image), 3-frame moves
     prev = SACC[0][1]
@@ -238,17 +270,16 @@ def sacc(f):      # small eye movements over the phone (reading the feed, then c
     return V(0, 0, 0)
 def look_target(f):
     sc = PM(f) @ (V(0, -0.007, 0) + sacc(f))
-    if 150 <= f < 170:
-        return sc.lerp(AWAY, smooth((f - 150) / 6)) if f < 160 else AWAY.lerp(sc, smooth((f - 165) / 5))
     if f >= 374: return sc.lerp(V(0.0, -2.0, 1.45), smooth((f - 374) / 6))
     return sc
-BLINKS = [(30, 3), (160, 3), (226, 3)]          # one content blink while the angle is good
+BLINKS = [(30, 3), (171, 3), (250, 2)]          # v3: a relieved blink at the normal angle, one during the last try (none in the freeze)
 def blink_amt(f):
     for b_, dur in BLINKS:
         if abs(f - b_) <= dur: return 1 - abs(f - b_) / (dur + 1)
     return 0.0
-LID_KEYS = [(1, 23), (114, 23), (124, 30), (132, 30), (150, -26), (192, -26), (212, 6), (238, 8), (258, -4), (268, -16), (282, -12),
-            (300, -8), (305, -8), (322, 32), (N, 32)]      # v2 final: wide (low) -> relaxed (eye level) -> wide again as it sinks -> settles
+# v3: casual -> SHOCK (snap) -> examining -> relieved -> shock again (snap) -> hopeful squint -> widest, frozen -> back to deadpan
+LID_KEYS = [(1, 23), (74, 23), (77, -34), (100, -34), (110, -24), (145, -22), (156, -20), (168, 12), (214, 12), (217, -30), (236, -28),
+            (246, 4), (262, 4), (266, -42), (294, -42), (324, 32), (N, 32)]
 def lid_of(f):
     for (fa, a), (fb, b) in zip(LID_KEYS, LID_KEYS[1:]):
         if fa <= f <= fb: return a + (b - a) * smooth((f - fa) / max(1, fb - fa))
@@ -359,19 +390,24 @@ def cam_for(f):
         t = (f - 1) / 40
         return V(0.3, -1.75, 1.42).lerp(V(0.27, -1.62, 1.4), t), V(0.03, -0.25, 1.17), 30, 4.0, FACE
     if f <= B['B'][1]:      # his point of view
-        t = smooth((f - 41) / 69)      # v2: a little wider and lower in frame, so the whole screen (bottom bar too) clears the title
+        t = smooth((f - 41) / 69)      # (v2 timing kept so frames 41-72 match the v2 render)      # v2: a little wider and lower in frame, so the whole screen (bottom bar too) clears the title
         s = SC(f); return V(0.0, -0.335, 1.43), s + V(0, 0, 0.03 - 0.008 * t), 54 + 4 * t, 5.6, s
     if f <= B['C'][1]:      # reaction, from just past the phone
-        t = smooth((f - 111) / 69)
+        t = smooth((f - 78) / 44)
         return V(0.24, -1.15, 1.2).lerp(V(0.2, -1.05, 1.22), t), FACE + V(0, 0, 0.1), 38, 4.0, FACE
     if f <= B['D'][1]:      # v2 final: fixed three-quarter medium, the raise is a visible arm move (v1 hid it in a POV that followed the phone)
         if os.environ.get('DCAM'):                                    # QA: try framings
             v = [float(x) for x in os.environ['DCAM'].split(',')]; return V(*v[:3]), V(*v[3:6]), v[6], 5.6, FACE
         return D_CAM
-    if f <= B['DP'][1]:     # his POV; the camera follows the phone only 80%, so as he lowers it the phone sinks in frame
-        s = SC(f); return V(0.0, -0.335, 1.43), s.lerp(SC(RAISE[1] + 6), 0.2), 40, 5.6, s
+    if f <= B['DP'][1] or B['S2'][0] <= f <= B['S2'][1] or B['S3'][0] <= f <= B['S3'][1]:     # his POV on the screen
+        s = SC(f); c = V(0.0, -0.335, 1.43); d = (s - c).length
+        return c, s, 40 * d / 0.47, 5.6, s       # lens scaled with distance: the phone is the same size in every insert
+    if f <= B['D2'][1]:     # from his right, a little low: the phone comes in close to his face
+        return V(1.0, -1.3, 1.52), V(0.0, -0.22, 1.16), 27, 5.6, FACE
+    if f <= B['D3'][1]:     # the opening's framing: the phone goes down to his belly
+        return V(0.27, -1.62, 1.4), V(0.03, -0.25, 1.1), 30, 4.0, FACE
     if f <= B['E'][1]:
-        t = smooth((f - 301) / 34)
+        t = smooth((f - 281) / 54)
         return V(0.2, -1.1, 1.22).lerp(V(0.16, -1.0, 1.25), t), FACE + V(0, 0, 0.1), 36, 4.0, FACE
     t = smooth((f - 336) / 129)
     return V(0.55, -1.78, 1.25).lerp(V(0.5, -1.7, 1.24), t), V(0.12, 0.0, 1.0), 24, 6.0, V(0.1, -0.1, 1.1)
@@ -385,7 +421,9 @@ def cam_setup(name):
 
 if SHOT == 'QA':
     print('EYE_C', tuple(round(x, 3) for x in EYE_C), 'pins', {k: len(v) for k, v in PIN.items()})
-    print('eye pitch LOW', EYE_LOG[100], 'HIGH', EYE_LOG[225])
+    print('eye pitch LOW', EYE_LOG[100], 'HIGH', EYE_LOG[170], 'CLOSE', EYE_LOG[225], 'WORST', EYE_LOG[270])
+    for nm, (p_, q_) in (('CLOSE', CLOSE), ('WORST', WORST)):
+        print(nm, 'phone', tuple(round(x, 3) for x in p_), 'to eyes', round((p_ - EYE_C).length, 3), 'hand', tuple(round(x, 3) for x in hold_P(225 if nm == 'CLOSE' else 270)))
     for f in (20, 200, 225, 290, 380, 440):   # leg/couch clearances (world): shin back vs couch front, foot bottom vs rug, knee vs cushion edge
         sh = to_world(FOOT_L['N']) - ROOT - UP0
         kn = KNEE_L['N'] + ROOT; ft = FOOT_L['N'] + ROOT
@@ -393,7 +431,8 @@ if SHOT == 'QA':
               '| foot bottom z', round(ft.z + 0.03 - 0.078 * 0.55, 3), 'vs rug', 0.012)
     json.dump({'SHOTS': B, 'N': N, 'CAM_ON': CAM_ON, 'SWIPES': SWIPES, 'SWIPE_CAM': SWIPE_CAM, 'TAP_CAM': TAP_CAM, 'TAP_OFF': TAP_OFF, 'SCREEN_OFF': SCREEN_OFF,
                'PUT_DOWN': PUT_DOWN, 'GRAB': GRAB, 'COVERED': COVERED, 'F_BLACK': F_BLACK,
-               'RAISE': [list(RAISE)], 'LOWER': [list(LOWER)]},
+               'RAISE': [list(RAISE)], 'LOWER': [list(TOCLOSE), list(TOWORST)], 'BACK': list(BACK), 'REVEALS': REVEALS,
+               'TOCLOSE': list(TOCLOSE), 'TOWORST': list(TOWORST)},
               open(os.path.join(HERE, 'beats.json'), 'w'), indent=1)
     sys.exit(0)
 if SHOT == 'SEL':

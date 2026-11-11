@@ -63,8 +63,8 @@ def feed_frame(f, tap=0.0):
 # ------------------------------------------------------------------ front camera
 def lowness(f):
     """1 = phone low (the horrifying angle), 0 = raised (normal)"""
-    (r0, r1), (l0, l1) = B['RAISE'][0], B['LOWER'][0]       # v2 final: one comparison, keyed from build.py's phone moves
-    K = [(1, 1.0), (r0, 1.0), (r1, 0.0), (l0, 0.0), (l1, 1.0), (N, 1.0)]
+    (r0, r1), (c0, c1), (w0, w1), (b0, b1) = B['RAISE'][0], B['TOCLOSE'], B['TOWORST'], B['BACK']   # v3: keyed from build.py's phone moves
+    K = [(1, 1.0), (r0, 1.0), (r1, 0.0), (c0, 0.0), (c1, 1.15), (w0, 1.15), (w1, 1.45), (b0, 1.45), (b1, 1.0), (N, 1.0)]   # >1: worse than the first
     for (fa, a), (fb, b) in zip(K, K[1:]):
         if fa <= f <= fb: return a + (b - a) * sm((f - fa) / max(1, fb - fa))
     return 1.0
@@ -127,6 +127,6 @@ for f in range(1, N + 1):
     elif f < OFF: im = camera_frame(f)
     else: im = Image.new('RGB', (W, H), (0, 0, 0))
     im.save(f'screen/sc_{f:04d}.png')
-sheet = Image.new('RGB', (W * 5 // 2, H // 2))
-for i, f in enumerate((50, 66, 71, 100, 250)): sheet.paste(Image.open(f'screen/sc_{f:04d}.png').resize((W // 2, H // 2)), (i * W // 2, 0))
+sheet = Image.new('RGB', (W * 6 // 2, H // 2))
+for i, f in enumerate((66, 73, 100, 175, 225, 272)): sheet.paste(Image.open(f'screen/sc_{f:04d}.png').resize((W // 2, H // 2)), (i * W // 2, 0))
 sheet.save('screen_sheet.jpg'); print('screen frames', N)
