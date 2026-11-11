@@ -32,11 +32,12 @@
     {
       "text": "V3 Comedy Revision: FAHHH (owner-supplied sound) on every bad selfie reveal, none on the normal angle; stronger shock with head recoil; four angles low / eye level / too close / worst; freeze, 0.5 s silence, back to deadpan, blanket ending kept.",
       "at": 1794366814743,
-      "done": false
+      "done": true,
+      "doneIn": 3
     }
   ],
   "createdAt": 1794277536599,
-  "updatedAt": 1794359992779,
+  "updatedAt": 1794366814879,
   "episode": "ep14",
   "versions": [
     {
@@ -52,6 +53,13 @@
       "poster": "v2.jpg",
       "seconds": 15.8,
       "notes": "V2 final: Doug actually sits (thighs on the cushion, knees forward, shins down), one clear low → eye level → low selfie comparison, visible accidental tap with ripple and camera zoom-open, Barista/Bathroom title typography. Face acting and blanket ending kept."
+    },
+    {
+      "v": 3,
+      "video": "v3.mp4",
+      "poster": "v3.jpg",
+      "seconds": 15.8,
+      "notes": "V3 comedy: FAHHH on each bad selfie (accident low angle, too-close chin cam, worst belly cam), no sound on the normal eye-level view; head recoil and flinches; freeze with 0.5 s dead silence before the unchanged blanket ending."
     }
   ]
 }
