@@ -40,7 +40,7 @@ WALK2 = (113, 134); TURN = (134, 142); SIT = (142, 154)
 REACH = (158, 168); LIFT = (168, 180); NJOIN = (172, 180); PRESS = 188; BOOT = (188, 213); MENU_ON = 214; LEAN = (222, 238)
 CARD = (259, 290)
 DROOP = (322, 356); CATCH = 360; HOVER = (382, 402)
-TRY = (424, 438); CLOSE = (440, 478); TILT = (452, 492); RELAX = (476, 500); ASLEEP = 496; SILENCE = (497, 510)
+TRY = (424, 438); CLOSE = (440, 478); TILT = (452, 492); RELAX = (476, 500); ASLEEP = 496; SILENCE = (497, 510); SNORE0 = 548      # first snore inhale (0.3 s after the FAHHH ends)
 REVEAL = 511
 G_BLACK = 641
 
@@ -218,7 +218,7 @@ def posture(f):
         return -5 * math.sin(math.pi * s), 0.0, -0.06 * math.sin(math.pi * min(1, s * 1.15))       # plops back onto the cushion
     return ease_tab(POST, f)
 def breath(f):
-    if f >= ASLEEP: return 0.006 * math.sin(2 * math.pi * (f - ASLEEP) / 66)      # slow sleep breathing
+    if f >= ASLEEP: return 0.006 * math.sin(2 * math.pi * (f - SNORE0) / 66 - math.pi / 2)      # slow sleep breathing; inhales start at SNORE0 + 66k
     return 0.0025 * math.sin(2 * math.pi * f / 105)
 
 # controller world pose
@@ -377,7 +377,7 @@ for f in range(1, N + 1):
     sm = ease_tab(SMILE, f)
     mouth_shape(f, sm)
     op = 0.0
-    if f >= ASLEEP: op = 0.18 + 0.1 * max(0.0, math.sin(2 * math.pi * (f - ASLEEP) / 66))        # mouth hangs a little open, asleep
+    if f >= ASLEEP: op = 0.18 + 0.1 * max(0.0, math.sin(2 * math.pi * (f - SNORE0) / 66))        # mouth hangs a little open, asleep
     mouth.scale = (1 + 1.6 * op, 1, 1 - 0.08 * sm); mouth.keyframe_insert('scale', frame=f)
 
 # ============================================================ CAMERAS
@@ -415,7 +415,7 @@ if SHOT == "QA":
     json.dump({'SH': SH, 'N': N, 'WALK1': WALK1, 'DROP': DROP, 'BAG_LAND': BAG_LAND, 'NOTICE': NOTICE, 'PERK': PERK, 'WALK2': WALK2,
                'TURN': TURN, 'SIT': SIT, 'REACH': REACH, 'LIFT': LIFT, 'PRESS': PRESS, 'BOOT': BOOT, 'MENU_ON': MENU_ON, 'LEAN': LEAN,
                'CARD': CARD, 'DROOP': DROOP, 'CATCH': CATCH, 'HOVER': HOVER, 'TRY': TRY, 'CLOSE': CLOSE, 'TILT': TILT, 'RELAX': RELAX,
-               'ASLEEP': ASLEEP, 'SILENCE': SILENCE, 'REVEAL': REVEAL, 'G_BLACK': G_BLACK}, open(os.path.join(HERE, 'beats.json'), 'w'), indent=1)
+               'ASLEEP': ASLEEP, 'SNORE0': SNORE0, 'SILENCE': SILENCE, 'REVEAL': REVEAL, 'G_BLACK': G_BLACK}, open(os.path.join(HERE, 'beats.json'), 'w'), indent=1)
     for f in (20, 112, 154, 200, 300, 500, 600):
         scene.frame_set(f)
         print(f, 'feet', [tuple(round(x, 3) for x in doug_r.foot[s].matrix_world.translation) for s in ('N', 'P')],
