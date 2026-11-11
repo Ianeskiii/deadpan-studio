@@ -19,11 +19,12 @@
     {
       "text": "FULL REVISION V3 (owner brief): 11-12 s cut. Opens seated with the controller, menu on; happy breath + \"FINALLY!\" with lip-sync; caption POV: GAMING IN YOUR 30s; OTS re-grip, thumb toward the buttons (never presses); hard-cut \"3 MINUTES LATER...\"; falls asleep in a medium close-up; Vine Boom (supplied vine-boom.mp3) on the wide reveal at 6.8 s instead of FAHHH; snoring from 8.2 s; ends 11.5 s.",
       "at": 1794386049356,
-      "done": false
+      "done": true,
+      "doneIn": 2
     }
   ],
   "createdAt": 1794377521129,
-  "updatedAt": 1794378836584,
+  "updatedAt": 1794386049491,
   "episode": "ep16",
   "versions": [
     {
@@ -32,6 +33,13 @@
       "poster": "v1.jpg",
       "seconds": 21.7,
       "notes": "First cut"
+    },
+    {
+      "v": 2,
+      "video": "v2.mp4",
+      "poster": "v2.jpg",
+      "seconds": 11.5,
+      "notes": "V2 (owner's V3 brief): 11.5 s. Seated opening, happy breath + FINALLY!, POV: GAMING IN YOUR 30s, OTS thumb toward the buttons, hard-cut 3 MINUTES LATER..., falls asleep in MCU, Vine Boom on the 6.8 s wide reveal (no FAHHH), snoring from 8.2 s."
     }
   ]
 }
