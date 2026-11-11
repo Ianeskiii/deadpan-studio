@@ -11,7 +11,7 @@ for name, step in PARTS:
     out = f'parts/{name}.mp4'
     if name == 'CARD':
         a, b = B['CARD']; dur = (b - a + 1) / 30
-        run(['-f', 'lavfi', '-i', f'color=c=black:s=1080x1920:r=30', '-i', 'caption.png', '-i', 'later.png', '-filter_complex',
+        run(['-f', 'lavfi', '-i', f'color=c=black:s=1080x1920:r=30', '-loop', '1', '-i', 'caption.png', '-loop', '1', '-i', 'later.png', '-filter_complex',
              f"[0][1]overlay[v];[2]format=rgba,fade=t=in:st=0.1:d=0.25:alpha=1,fade=t=out:st={dur - 0.3:.3f}:d=0.25:alpha=1[l];[v][l]overlay=shortest=1,format=yuv420p[o]",
              '-map', '[o]', '-t', f'{dur:.4f}'] + ENC + [out])
     elif name == 'BLACK':

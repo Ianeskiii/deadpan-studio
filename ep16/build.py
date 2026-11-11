@@ -390,7 +390,9 @@ def cam_for(f):
         t = smooth((f - 1) / 111)
         return V(0.5, -1.22, 1.34).lerp(V(0.42, -1.16, 1.32), t), V(-1.4, -0.55, 0.98).lerp(V(-1.2, -0.6, 1.02), t), 20, 5.6, EYE(f)
     if f <= SH['B'][1]:        # medium from the front-right: the cross to the couch, the plop, the controller
-        return V(0.55, -1.13, 1.25), V(-0.12, -0.2, 0.95), 19, 5.6, EYE(f)
+        # V1 cam (0.55,-1.13) had him walk almost through the lens; now from the front-left, panning with him to the couch
+        t = smooth((f - SH['B'][0]) / 37)
+        return V(-0.95, -1.97, 1.62), V(-0.62, -0.48, 0.92).lerp(V(-0.25, -0.35, 0.9), t), 18, 5.6, EYE(f)
     if f <= SH['C'][1]:        # over his right shoulder at the TV
         t = smooth((f - SH['C'][0]) / 52)
         return V(0.86, 0.82, 1.66).lerp(V(0.82, 0.72, 1.62), t), V(-0.2, -1.95, 1.0), 26, 8.0, V(0, -1.9, 1.1)
