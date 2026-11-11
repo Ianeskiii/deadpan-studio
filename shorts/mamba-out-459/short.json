@@ -1,0 +1,31 @@
+{
+  "id": "mamba-out-459",
+  "title": "When You Finish Work at 4:59 PM",
+  "description": "Home office, 4:59 PM. Doug takes off his headset, picks up a pen, says \"Mamba out.\" and mic-drops it. The clock hits 4:59:59 and BOSS calls. He freezes, looks screen, pen, screen, picks the pen back up, puts it back, puts the headset back on: UNMAMBA. \"...Alright.\" The cursor drifts toward Accept and stops; he stares into the webcam; cut to black.",
+  "durationMin": 13,
+  "durationMax": 15,
+  "characters": [],
+  "newCharacters": "",
+  "scene": "home-office",
+  "newScene": "",
+  "reference": "",
+  "status": "ready",
+  "stage": "Ready",
+  "stageIndex": 9,
+  "progress": 100,
+  "etaMinutes": null,
+  "note": "",
+  "revisions": [],
+  "createdAt": 1794413730911,
+  "updatedAt": 1794413731022,
+  "episode": "ep17",
+  "versions": [
+    {
+      "v": 1,
+      "video": "v1.mp4",
+      "poster": "v1.jpg",
+      "seconds": 14.7,
+      "notes": "First cut: 14.7 s. Mamba out → 4:59:59 BOSS call → UNMAMBA. → stare and cut to black."
+    }
+  ]
+}
