@@ -17,7 +17,15 @@
   "note": "",
   "revisions": [],
   "createdAt": 1794377521129,
-  "updatedAt": 1794377521129,
+  "updatedAt": 1794378836584,
   "episode": "ep16",
-  "versions": []
+  "versions": [
+    {
+      "v": 1,
+      "video": "v1.mp4",
+      "poster": "v1.jpg",
+      "seconds": 21.7,
+      "notes": "First cut"
+    }
+  ]
 }
