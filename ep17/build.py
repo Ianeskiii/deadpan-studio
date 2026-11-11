@@ -306,7 +306,7 @@ def mouth_shape(f, sm):
 # lids: focused -> tired -> relieved -> pleased -> (frozen) -> drained -> resigned -> blank
 LID = [(1, 16), (TYPE[1], 16), (CLOCK_LOOK[1], 14), (RELAX[1], 24), (HS_OFF[1], 22), (M_F, 14), (M_F + 14, 10), (PEN_DROP + 6, 12),
        (CALL, 12), (CALL + 3, 4), (SH['C'][0], 4), (DRAIN[1], 18), (G_PEN[1], 22), (REACH[1], 26), (PEN_BACK[1], 26),
-       (SINK[1], 28), (A_F, 28), (A_F + 20, 30), (MOUSE[1], 26), (LOOK_UP[0], 24), (N, 24)]
+       (SINK[1], 28), (A_F, 28), (A_F + 20, 30), (MOUSE[1], 26), (LOOK_UP[0], 24), (LOOK_UP[1], float(os.environ.get("LID_E", 12))), (N, float(os.environ.get("LID_E", 12)))]
 BLINKS = [(12, 2), (RELAX[0] + 3, 3), (M_F + 2, 3), (G_PEN[0] - 2, 3), (HS_ON[1] + 2, 4), (A_F + 4, 4)]   # none in the final stare
 BROW = [(1, (-0.004, -2)), (TYPE[1], (-0.004, -2)), (RELAX[1], (0.008, 2)), (M_F + 10, (0.016, 4)), (PEN_DROP + 6, (0.014, 3)),
         (CALL, (0.014, 3)), (CALL + 3, (0.026, 6)), (SH['C'][0], (0.024, 5)), (DRAIN[1], (0.0, -2)), (SINK[1], (-0.008, -5)),
@@ -336,7 +336,7 @@ GAZE = [(1, DOC_W), (CLOCK_LOOK[0], DOC_W), (CLOCK_LOOK[0] + 5, CLOCK_W), (RELAX
         (G_PEN[1], PEN_LANDED.translation), (G_BACK[0], PEN_LANDED.translation), (G_BACK[1], CARD_W), (REACH[0] + 6, CARD_W),
         (REACH[1] - 4, PEN_LANDED.translation), (PEN_BACK[1], PEN_HOME.translation), (HS_GRAB[0] + 2, HS_DESK.translation),
         (HS_ON[0] + 6, V(0, -1.4, 1.2)), (HANDS_DOWN[0], CARD_W), (MOUSE[1], CARD_W), (CURSOR[1], ACC_W), (LOOK_UP[0], ACC_W),
-        (LOOK_UP[1], CAM_E), (N, CAM_E)]
+        (LOOK_UP[1], CAM_E + V(0, 0, float(os.environ.get("GZ_E", -0.3)))), (N, CAM_E + V(0, 0, float(os.environ.get("GZ_E", -0.3))))]
 for f in range(1, N + 1):
     scene.frame_set(f)
     T_ = ease_tab(GAZE, f)
