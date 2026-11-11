@@ -2,8 +2,8 @@
   "id": "free-time-games",
   "title": "When You Finally Have Free Time to Play Games",
   "description": "No dialogue. Doug drags in after work, drops his bag, sees the console and perks up. He plops on the couch, picks up the controller and boots it up: an original game menu (NEW GAME / CONTINUE / SETTINGS) with quiet music. \"15 MINUTES LATER...\" He fights sleep: heavy lids, slow blinks, head droops, catches himself, thumb hovering over Start. He falls asleep in a medium close-up, then a sudden wide reveal: asleep, controller still in his hands, NEW GAME still on screen. FAHHH on the cut, a beat, then soft snoring and black.",
-  "durationMin": 18,
-  "durationMax": 22,
+  "durationMin": 11,
+  "durationMax": 12,
   "characters": [],
   "newCharacters": "",
   "scene": "living-room",
@@ -15,7 +15,13 @@
   "progress": 100,
   "etaMinutes": null,
   "note": "",
-  "revisions": [],
+  "revisions": [
+    {
+      "text": "FULL REVISION V3 (owner brief): 11-12 s cut. Opens seated with the controller, menu on; happy breath + \"FINALLY!\" with lip-sync; caption POV: GAMING IN YOUR 30s; OTS re-grip, thumb toward the buttons (never presses); hard-cut \"3 MINUTES LATER...\"; falls asleep in a medium close-up; Vine Boom (supplied vine-boom.mp3) on the wide reveal at 6.8 s instead of FAHHH; snoring from 8.2 s; ends 11.5 s.",
+      "at": 1794386049356,
+      "done": false
+    }
+  ],
   "createdAt": 1794377521129,
   "updatedAt": 1794378836584,
   "episode": "ep16",
