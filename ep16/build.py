@@ -291,8 +291,8 @@ def mouth_shape(f, sm):
     for p, x in zip(msp.points, MX):
         u = x / 0.036; z = 0.02 * sm * (u * u - 0.35)          # corners up, middle down a touch
         p.co = (-z, 0.32 - math.sqrt(0.32 ** 2 - x * x), x, 1.0); p.keyframe_insert('co', frame=f)
-LID = [(1, 8), (INHALE[0], 8), (INHALE[1], 0), (HAH[1], 4), (FIN[0], 2), (FIN[0] + 8, -10), (SH['A'][1], -8),      # eyes brighten on FINALLY
-       (LEAN[0], -6), (CARD[0], 0),
+LID = [(1, 8), (INHALE[0], 8), (INHALE[1], -6), (HAH[1], -2), (FIN[0], -6), (FIN[0] + 8, -28), (SH['A'][1], -24),   # eyes light up on FINALLY
+       (LEAN[0], -18), (CARD[0], -10),
        (SH['E'][0], 22), (HEAVY[1], 29), (DROOP[0], 30), (DROOP[1], 80), (CATCH[0], 82), (CATCH[1], 12), (LOOK[0] + 4, 18),     # heavy ... droop ... caught
        (LOOK[1], 26), (CLOSE[0] + 6, 52), (CLOSE[0] + 9, 44), (CLOSE[1], 95), (N, 95)]                                      # tries to look; eyes close
 BLINKS = [(62, 2), (SLOWBLINK, 8)]                # one quick blink after FINALLY; one slow heavy blink 3 min later

@@ -56,7 +56,7 @@ mus = loop * lv * 0.9
 src, ssr = sf.read('sfx/vine_boom_src.wav')
 if src.ndim > 1: src = src.mean(1)
 e = np.convolve(np.abs(src), np.ones(48) / 48, 'same'); hit = int(np.argmax(e > e.max() * 0.25))     # the boom's attack
-boom = src / np.abs(src).max() * 10 ** (-4.0 / 20)
+boom = src / np.abs(src).max() * 10 ** (-6.0 / 20)
 B_T0 = T(B['REVEAL']) - hit / SR; B_END = B_T0 + len(boom) / SR
 
 # ---- snoring on his breaths (build.py: inhale starts at SNORE0 and every 66 frames)
