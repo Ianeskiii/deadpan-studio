@@ -12,14 +12,14 @@
   "scene": "living-room",
   "newScene": "Re-dress living-room as a cozy ordinary Filipino family living room in warm indoor light: sofa, small coffee table, TV in background, simple home decorations, clean and uncluttered. Two phones (Mom's and Doug's).",
   "reference": "",
-  "status": "queued",
-  "stage": "Queued",
-  "stageIndex": 0,
-  "progress": 0,
-  "etaMinutes": null,
-  "note": "",
+  "status": "working",
+  "stage": "Script & timing",
+  "stageIndex": 1,
+  "progress": 11,
+  "etaMinutes": 240.0,
+  "note": "Reading brief and MP3s; building as ep19 (ep18 is the separate jeepney project)",
   "revisions": [],
   "versions": [],
   "createdAt": 1794480452136,
-  "updatedAt": 1794480452136
+  "updatedAt": 1794482888329
 }
