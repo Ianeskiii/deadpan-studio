@@ -1,0 +1,32 @@
+{
+  "id": "jeolee-bedtime",
+  "channel": "deadpan-doug",
+  "title": "Me while watching Jeolee before going to sleep",
+  "description": "Doug in bed at 2 AM, no hat, watching Jeolee (PBB) moments on his phone: sleepy -> small smile -> kilig -> big happy smile. No dialogue; the owner supplies the Jeolee/PBB audio.",
+  "durationMin": 10,
+  "durationMax": 10,
+  "characters": [],
+  "newCharacters": [],
+  "scene": "bedroom",
+  "newScene": "",
+  "reference": "",
+  "status": "ready",
+  "stage": "Ready",
+  "stageIndex": 9,
+  "progress": 100,
+  "etaMinutes": null,
+  "note": "",
+  "episode": "ep20",
+  "versions": [
+    {
+      "v": 1,
+      "video": "v1.mp4",
+      "poster": "v1.jpg",
+      "seconds": 10.0,
+      "notes": "v1: full 10 s render; iPhone-style phone; silent track until the Jeolee/PBB audio is supplied"
+    }
+  ],
+  "revisions": [],
+  "createdAt": 1794486751322,
+  "updatedAt": 1794486786832
+}
