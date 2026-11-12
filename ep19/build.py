@@ -349,8 +349,8 @@ M_BROW = [(1, (0.0, 0)), (A0 - 1, (0.0, 0)), (A0 + 2, (0.035, -4)), (F1_ + 60, (
           (F5_ + 2, (0.0, 4)), (F5_ + 6, (0.04, -4)), (F5_ + 30, (0.032, -12)), (F5_ + 60, (0.025, -14)), (EN1, (0.012, -6)), (N, (0.012, -6))]
 # Doug: deadpan 23, tired 26, reading squint 33, final stare half-lowered 30 + one slow blink
 D_LID = [(1, 22), (BT.B_LOOKUP + 6, 23), (SH['B'][1], 23), (DL1, 26), (BT.D_READ + 10, 28), (F4_ + 30, 28), (F4_ + 40, 24),
-         (SH['E'][1], 24), (BT.TURN[1], 24), (N, 25)]
-D_BLINKS = [(BT.B_LOOKUP + 2, 2), (F2_ + 60, 2), (SH['D'][0] + 3, 2), (F4_ + 34, 2), (BT.TURN[0] + 1, 2), (BT.TURN[1] + 22, 4)]
+         (SH['E'][1], 24), (BT.TURN[1], 13), (N, 13)]
+D_BLINKS = [(BT.B_LOOKUP + 2, 2), (F2_ + 60, 2), (SH['D'][0] + 3, 2), (F4_ + 34, 2), (BT.TURN[0] + 1, 2), (BT.TURN[1] + 24, 2)]
 SAC = {}; _rng = _r.Random(19)
 def saccade(who, f, amp=1.0):
     k = (who, f // 11)
@@ -383,7 +383,7 @@ D_GAZE = [(1, d_scr), (BT.B_LOOKUP, m_face), (SH['B'][1] - 2, m_face), (DL0, m_s
 scene.frame_set(N); bpy.context.view_layer.update()
 DFN = d_face()
 _fw = (doug_r.upper.matrix_world.to_3x3() @ V(0, -1, 0)).normalized()
-CUR['camF'] = DFN + _fw * 1.45 + V(0, 0, 0.02)
+CUR['camF'] = DFN + _fw * 1.45 + V(0, 0, -0.22)          # a touch below his eyes: he looks slightly down into the lens
 for f in range(1, N + 1):
     scene.frame_set(f)
     # Mom
@@ -432,7 +432,7 @@ def cam_for(f):
         d0 = rotz(fwd_d, -26); return DF + d0 * 1.6 + V(0, 0, -0.03), DF + V(0, 0, -0.09), 32, 4.0, DF
     if f <= SH['E'][1]:            # Mom MCU, punchline: steady
         d0 = rotz(fwd_m, 22); return MF + d0 * 1.35 + V(0, 0, -0.03), MF + V(0, 0, -0.12), 31, 4.0, MF
-    return CUR['camF'], DFN + V(0, 0, -0.02), 36, 4.0, DFN   # Doug tight CU, he turns into the lens
+    return CUR['camF'], DFN + V(0, 0, -0.06), 36, 4.0, DFN   # Doug tight CU, he turns into the lens
 cam_data.clip_start = 0.02
 scene.view_settings.exposure = -0.45
 def cam_setup(name):
@@ -442,6 +442,9 @@ def cam_setup(name):
         key(cam, 'location', f, p); key(target, 'location', f, tgt); key(focus, 'location', f, fp)
         key(cam_data, 'lens', f, lens); key(cam_data.dof, 'aperture_fstop', f, fs)
 if SHOT == 'QA':
+    for f in (300, 380, 470, 500, 530):
+        scene.frame_set(f); bpy.context.view_layer.update()
+        print('EYES', f, [tuple(round(math.degrees(a), 1) for a in pv.rotation_euler) for pv in doug['eyes']], 'lid', [round(math.degrees(o.rotation_euler.x), 1) for o in D_LIDS][:2])
     print('MF', tuple(round(x, 3) for x in MF), 'DF', tuple(round(x, 3) for x in DF), 'camF', tuple(round(x, 3) for x in CUR['camF']))
     for f in (1, 20, 60, 200, 260, 290, 330, 420, 500, 540):
         scene.frame_set(f); bpy.context.view_layer.update()
