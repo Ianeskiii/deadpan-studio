@@ -33,7 +33,7 @@ def aimed_area(name, loc, tgt, power, color, size):
 # ============================================================ FILIPINO LIVING ROOM (warm, daytime; the living-room set re-dressed)
 R_ = dict(
     floor=brick_mat('tiles', hexc('#d9c9ae'), hexc('#d1bfa2'), hexc('#a8957a'), 1.6, 0.5, 0.5, 0.0, 0.35),
-    wall=mat('ph_wall', hexc('#ead8b6'), 0.9), wall2=mat('ph_wall2', hexc('#e3cfa9'), 0.9), trim=mat('ph_trim', hexc('#8a5a3a'), 0.6),
+    wall=mat('ph_wall', hexc('#dcc49b'), 0.9), wall2=mat('ph_wall2', hexc('#c9a97c'), 0.9), trim=mat('ph_trim', hexc('#8a5a3a'), 0.6),
     sofa=mat('sofa', hexc('#7a4a36'), 0.7, 0.0, sheen=0.4), cushion=mat('sofa_cush', hexc('#86533c'), 0.75, 0.0, sheen=0.4),
     pillow=mat('pillow', hexc('#d9a441'), 0.9, sheen=0.6), pillow2=mat('pillow2', hexc('#4f8a7a'), 0.9, sheen=0.6),
     wood=mat('ph_wood', hexc('#6b4429'), 0.45, 0.2), wood_l=mat('ph_wood_l', hexc('#b07a45'), 0.45, 0.3), black=mat('tvblack', hexc('#141416'), 0.3, 0.4),
@@ -226,7 +226,7 @@ def make_phone(name, case_m, img):
     s.data.materials.append(sm_); s.parent = ph
     cyl(name + '_lens', 0.008, 0.004, (0.022, PHT / 2 + 0.001, 0.06), mat(name + '_lensm', hexc('#08080a'), 0.1, 0.8), rot=(D(90), 0, 0), verts=24, parent=ph)
     return ph
-m_phone = make_phone('mom_phone', MM['case'], 'mom_post.png'); m_phone.parent = mom_r.upper
+m_phone = make_phone('mom_phone', MM['case'], 'mom_post.png'); m_phone.parent = mom_r.upper; m_phone.scale = (1.35, 1.35, 1.35)
 d_phone = make_phone('doug_phone', M['phone'], 'doug_feed.png'); d_phone.parent = doug_r.upper
 def face_quat(n, up=V(0, 0, 1), roll=0.0):
     """phone orientation whose screen (local -Y) faces along n (world/parent dir), long axis toward up"""
@@ -408,7 +408,7 @@ def rotz(v, deg):
     c, s = math.cos(D(deg)), math.sin(D(deg)); return V(v.x * c - v.y * s, v.x * s + v.y * c, v.z)
 scene.frame_set(SH['A'][1]); bpy.context.view_layer.update(); MF = m_face()
 scene.frame_set(SH['B'][0] + 20); bpy.context.view_layer.update(); DF = d_face()
-scene.frame_set(SH['O'][0] + 16); bpy.context.view_layer.update(); PHN = m_scr(); DFO = d_face()
+scene.frame_set(SH['O'][0] + 16); bpy.context.view_layer.update(); PHN = m_scr(); PHD = m_date(); DFO = d_face()
 md = (DF - MF); md.z = 0; md.normalize()                 # Mom -> Doug, flat
 fwd_m = rotz(V(0, -1, 0), MOM_H); fwd_d = rotz(V(0, -1, 0), DOUG_H)
 def cam_for(f):
@@ -419,19 +419,22 @@ def cam_for(f):
     if f <= SH['B'][1]:            # Doug MCU, from just left of front (Mom's side)
         d0 = rotz(fwd_d, -24); return DF + d0 * 1.95 + V(0, 0, -0.02), DF + V(0, 0, -0.1), 30, 4.0, DF
     if f <= SH['C'][1]:            # Mom medium: the phone pushed out toward Doug
-        t = smooth((f - SH['C'][0]) / (SH['C'][1] - SH['C'][0])); d0 = rotz(fwd_m, 34)
-        return MF + d0 * (1.95 - 0.06 * t) + V(0, 0, -0.1), MF + V(0.12, 0, -0.24), 28, 5.6, MF + V(0.1, 0, -0.1)
-    if f <= SH['O'][1]:            # over Doug's left shoulder (Mom's side), onto her phone: the date is readable
+        t = smooth((f - SH['C'][0]) / (SH['C'][1] - SH['C'][0])); d0 = rotz(fwd_m, 40)
+        return MF + d0 * (1.6 - 0.06 * t) + V(0, 0, -0.06), MF + V(0.2, 0, -0.2), 30, 5.6, MF + V(0.1, 0, -0.1)
+    if f <= SH['O'][1]:            # insert from just beside Doug's eyeline onto her phone: the date is readable
         t = smooth((f - SH['O'][0]) / (SH['O'][1] - SH['O'][0]))
-        back = (DFO - PHN); dist = back.length; back.normalize(); side = rotz(V(back.x, back.y, 0).normalized(), 90)
-        p = PHN + back * (dist - 0.2) + side * 0.17 + V(0, 0, 0.03)          # beside his cheek, just under the brim
-        return p + (PHN - p) * (0.05 * t), PHN + V(0, 0, 0.004), 34, 8.0, PHN
+        to_ph = (PHN - DFO); side = rotz(V(to_ph.x, to_ph.y, 0).normalized(), 90)
+        p = DFO + to_ph * 0.42 + side * 0.035 + V(0, 0, -0.01)            # outside his head, under the brim
+        if os.environ.get('DBG'): print('DBG O cam', tuple(round(x, 3) for x in p))
+        tg = PHD + (PHN - PHD) * 0.55
+        return p + (tg - p) * (0.08 * t), tg, 50, 8.0, tg
     if f <= SH['D'][1]:            # Doug CU while he reads and says it
         d0 = rotz(fwd_d, -26); return DF + d0 * 1.6 + V(0, 0, -0.03), DF + V(0, 0, -0.09), 32, 4.0, DF
     if f <= SH['E'][1]:            # Mom MCU, punchline: steady
         d0 = rotz(fwd_m, 22); return MF + d0 * 1.35 + V(0, 0, -0.03), MF + V(0, 0, -0.12), 31, 4.0, MF
     return CUR['camF'], DFN + V(0, 0, -0.02), 36, 4.0, DFN   # Doug tight CU, he turns into the lens
 cam_data.clip_start = 0.02
+scene.view_settings.exposure = -0.45
 def cam_setup(name):
     a_, b_ = SH[name]
     for f in range(a_, b_ + 1):

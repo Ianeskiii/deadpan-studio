@@ -26,7 +26,7 @@ BLACK = SPEECH_END + 66                                          # ~2.2 s of sil
 N = BLACK + 7                                                    # ~0.25 s of black
 SH = dict(A=(1, A_END), B=(A_END + 1, B_END), C=(B_END + 1, C_END), O=(C_END + 1, O_END), D=(O_END + 1, D_END),
           E=(D_END + 1, E_END), F=(F0, BLACK - 1))
-STEP = dict(A=1, B=2, C=1, O=2, D=2, E=1, F=2)
+STEP = dict(A=1, B=2, C=2, O=2, D=2, E=2, F=2)
 # acting beats
 A_LEAN = (6, 14)                 # Mom: eyes pop, leans in to the phone
 A_TURN = (16, 26)                # ... turns to Doug, phone comes up
