@@ -1,0 +1,24 @@
+{
+ "fps": 30,
+ "frames": {
+  "interested": 60,
+  "smile_start": 66,
+  "smile_small": 118,
+  "kilig": 124,
+  "pull_start": 128,
+  "pull_end": 168,
+  "peak_start": 195,
+  "peak_end": 255,
+  "settle": 262,
+  "shy_wiggle": 272
+ },
+ "blinks": [
+  26,
+  96,
+  150,
+  182,
+  248,
+  286
+ ],
+ "note": "Planned timing (brief section 3). Re-time these to the Jeolee audio once it is supplied: smile_start = first sweet moment, peak_start = most kilig moment."
+}
