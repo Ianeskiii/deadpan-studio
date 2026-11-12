@@ -1,0 +1,25 @@
+{
+  "id": "mama-fake-news",
+  "channel": "deadpan-doug",
+  "title": "Mama mong mahilig maniwala sa fake news",
+  "description": "Tagalog skit, 5 owner-recorded lines. FULL BRIEF: shorts/mama-fake-news/brief.md — follow it exactly. Use the five MP3s in this folder as-is, in this order: mom_dialogue_1, doug_dialogue_1, mom_dialogue_2, doug_dialogue_2, mom_dialogue_3 (no TTS, no rewording, no speed change; short natural pauses, no overlap). Mom (new character) scrolls Facebook on the sofa: \"NAK! PATAY NA SI JACKIE CHAN!\" Doug, calm, on his phone: \"Ma, fake news 'yan. Buhay pa 'yan.\" Mom holds up the phone: \"Hindi ah! Nasa Facebook oh!\" (screen = obviously sensational fake post). Over-the-shoulder insert, readable 2016 date; Doug: \"Ma... 2016 pa 'tong post.\" Mom, completely sincere: \"AY GANUN? MATAGAL NA PALANG PATAY?!\" Doug turns to camera, blank stare, ~1.5-2 s of silence, hard cut to black. No laugh track, no music under dialogue, no sting after the punchline. The death claim must read as misinformation, never as fact. Caption all the way through, top center, max 2 lines: \"Mama mong mahilig maniwala sa fake news\" — white with thin black outline (Permanent Marker, per house style). Check speech with faster-whisper in Tagalog per line (like ep18 phase 0).",
+  "durationMin": 15,
+  "durationMax": 19,
+  "characters": [
+    "doug"
+  ],
+  "newCharacters": "Mom (Doug's mother): same low-poly Tube Town style, visibly distinct from Doug and a bit older, simple casual Filipino house clothes, expressive brows and eyes, mouth shapes good for Tagalog. Confident and dramatic, sincerely believes Facebook; not dumb or overly cartoonish.",
+  "scene": "living-room",
+  "newScene": "Re-dress living-room as a cozy ordinary Filipino family living room in warm indoor light: sofa, small coffee table, TV in background, simple home decorations, clean and uncluttered. Two phones (Mom's and Doug's).",
+  "reference": "",
+  "status": "queued",
+  "stage": "Queued",
+  "stageIndex": 0,
+  "progress": 0,
+  "etaMinutes": null,
+  "note": "",
+  "revisions": [],
+  "versions": [],
+  "createdAt": 1794480452136,
+  "updatedAt": 1794480452136
+}
