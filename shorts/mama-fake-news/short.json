@@ -12,15 +12,23 @@
   "scene": "living-room",
   "newScene": "Re-dress living-room as a cozy ordinary Filipino family living room in warm indoor light: sofa, small coffee table, TV in background, simple home decorations, clean and uncluttered. Two phones (Mom's and Doug's).",
   "reference": "shorts/mama-fake-news/refs/ (see README.md: 4 owner videos for art style and characters)",
-  "status": "working",
-  "stage": "Script & timing",
-  "stageIndex": 1,
-  "progress": 11,
-  "etaMinutes": 240.0,
-  "note": "Reading brief and MP3s; building as ep19 (ep18 is the separate jeepney project)",
+  "status": "ready",
+  "stage": "Ready",
+  "stageIndex": 9,
+  "progress": 100,
+  "etaMinutes": null,
+  "note": "",
   "revisions": [],
-  "versions": [],
+  "versions": [
+    {
+      "v": 1,
+      "video": "v1.mp4",
+      "poster": "v1.jpg",
+      "seconds": 18.4,
+      "notes": "First cut: 18.4 s. Owner's 5 Tagalog takes as-is; Mom (new), Filipino living room, readable 2016 fake post insert, 2 s deadpan stare, hard cut to black."
+    }
+  ],
   "createdAt": 1794480452136,
-  "updatedAt": 1794482888329,
+  "updatedAt": 1794492732677,
   "episode": "ep19"
 }
